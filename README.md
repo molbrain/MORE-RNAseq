@@ -1,75 +1,49 @@
 # MORE-RNAseq
 
-RNAseq
-==
+## Summary
 
-This is the MORE-RNAseq pipeline, a series of detailed scripts analyzing RNA sequencing of genes and L1 transpooons.
+This is the MORE-RNAseq pipeline, a series of scripts analyzing RNA sequencing of genes and L1 transposons.
 
-Details
---
+## Outline of pipeline
 
-1. Sample check:
-    1. md5sum check: **CAUTION** NOT PREPARED, DO AS YOU LIKE
-    1. make filename list and sample annotation table (000)
-1. Quality check of raw data: FastQC and/or fastq-stats
-    1. FastQC (001)
-    1. fastq-stats (ea-utils) (002)
-    1. summarize the fastq stats (003): Optional
-1. Trimming: cutadapt and/or Trimmomatic
-    1. remove G-streches in R2-tail by cutadapt (004): Optional
-    1. trim adapters and low-quality reads by Trimmomatic (005)
-1. Confirmation of quality after trimming
-    1. re-check by FastQC (006)
-    1. re-check by fastq-stats (007): Optional
-    1. summarize the fastq stats (008)
+1. Quality check: **CAUTION** NOT PREPARED, DO AS YOU LIKE
+    1. File check by md5/sha1 etc.
+    1. FastQC, fastq-stats (ea-utils), and so on.
+1. Trimming: cutadapt and/or Trimmomatic (if you want, you can use other tools, like TrimGalore! and so on).
+    1. If need, remove G-stretches in R2-tail by cutadapt (optional)
+    1. trim adapters and low-quality reads by Trimmomatic
 1. Mapping and counting: STAR/RSEM
-    1. prepare the references for STAR/RSEM (009): **CAUTION** YOU NEED THE REWRITE "READ_LENGTH" VALUE BEFORE USE, AND IF YOU USE AS "MORE-RNAseq", ADDITIONAL COMMAND LINES ARE NEEDED (PLEASE SEE THE COMMENTS IN THIS SCRIPT)
-    1. mapping by STAR (010): **CAUTION** IF YOU USE AS "MORE-RNAseq", ADDITIONAL OPTIONS ARE NEEDED (PLEASE SEE THE COMMENTS IN THIS SCRIPT)
-    1. quality check of BAM data from STAR by samtools (011)
-    1. summarize the STAR logs and BAM stats (012)
-    1. calculate the expression by RSEM (013)
-    1. quality check of BAM data from RSEM by samtools (014): Optional
-    1. summarize the RSEM logs and BAM stats (015)
-    1. create an expected-count data matrix by RSEM (016)
-    1. create TPM and FPKM data matrix (017)
-    1. create ReadPerGenes (from STAR) matrix (018): Optional
-1. Detection: edgeR
-    1. reformat each matrix to R-friendly-data (019)
-    1. Detect the DEGs (Differentially Expressed Genes) by edgeR (020): **CAUTION** Sorry, not prepared yet...
+    1. prepare the references for STAR/RSEM): **CAUTION** YOU NEED THE REWRITE "READ_LENGTH" VALUE BEFORE USE
+    1. mapping: STAR **NOTE** IF YOU NEED, ADDITIONAL OPTIONS AND MODIFIED VALUES ARE AVAILABLE (PLEASE SEE THE COMMENTS IN THIS SCRIPT).
+    1. calculate the expression: RSEM: **NOTE** IF YOU NEED, ADDITIONAL OPTIONS AND MODIFIED VALUES ARE AVAILABLE (PLEASE SEE THE COMMENTS IN THIS SCRIPT).
+    1. create an expected-count data matrix: RSEM and shell scripts
+    1. create TPM and FPKM data matrix: shell script
+1. Detection of DEGs (Differentially Expressed Genes): edgeR (If you want, you can use other tools, like DEseq2, and so on)
+1. Visualization: R scripts (Of course you can make your scripts and use other tools)
 
 
-
-Requires
---
-
-In our lab's servers/workstations, the installations and preparations are already OK.
+## Developed environment
 
 - CentOS7/8/Rockey
 - perl5
-    - w/ local::lib for RSEM (maybe...)
 - java
 - R and Bioconductor
-- and these tools
-    - fastqc
-    - ea-utils
-    - cutadapt
-    - Trimmomatic
-    - STAR
-    - samtools
-    - RSEM
+
+
+## Requires, Recommends
+
+- perl5
+- java
+- R and Bioconductor
+- Trimming tools (like cutadapt and Trimmomatic)
+- STAR
+- RSEM
 
 
 
-Usage
---
+## Usage
 
-
-
-
-MORE-RNAseq
---
-
-If you use the pipeline as "MORE-RNAseq", you have to change the some part of command lines and options as follows:
+If you use the pipeline of "MORE-RNAseq" with , you have to change the some part of command lines and options as follows:
 
 - In the step of creating the reference for STAR/RSEM (as 009_prepare_star_rsem_ref.zsh), uncomment the two lines.
 These lines are commented on by default.
