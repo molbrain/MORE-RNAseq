@@ -45,40 +45,18 @@ This is the MORE-RNAseq pipeline, a series of scripts analyzing RNA sequencing o
 
 If you use the pipeline of "MORE-RNAseq" with , you have to change the some part of command lines and options as follows:
 
-- In the step of creating the reference for STAR/RSEM (as 009_prepare_star_rsem_ref.zsh), uncomment the two lines.
-These lines are commented on by default.
-```
-#L1_GTF=/home/Shared/Miscellaneous/Public/GTF_with_fli_L1/L1_Utr5toUtr3.${GENOME}.gtf
-#cat ${L1_GTF} >> ${REF_GTF}
-```
+- In the step of creating the reference for STAR/RSEM (as 009_prepare_star_rsem_ref.zsh), alter the proper genome (e.g. GRCh38).
+
 Change like this.
-```
+GENOME=GRCh38
 L1_GTF=/home/Shared/Miscellaneous/Public/GTF_with_fli_L1/L1_Utr5toUtr3.${GENOME}.gtf
 cat ${L1_GTF} >> ${REF_GTF}
-```
+
 
 - In the STAR mapping step (as template_010_STAR_mapping.zsh), uncomment the three lines and add these three options to the last line of the STAR command:
-These options of the STAR command are commented on and not used by default.
-```
-    ${TOOL_STAR} \
-	--runMode alignReads \
-	--genomeDir ${STAR_RSEM_REF_DIR} \
-	--readFilesCommand gunzip -c \
-	--runThreadN ${THREAD} \
-	--quantMode TranscriptomeSAM GeneCounts \
-	--readFilesIn ${INPUT_FASTQ_R1} ${INPUT_FASTQ_R2} \
-	--outSAMtype BAM SortedByCoordinate \
-	--outFileNamePrefix ${OUTPUT_EACH_DIR}/ \
-	
-	
-	### MORE RNA-seq settings
-	### NEED TO ADD THE THREE OPTIONS TO STAR COMMAND ABOVE
-	#--outSAMprimaryFlag AllBestScore \
-	#--outSAMmultNmax -1 \
-	#--outFilterMultimapNmax 10000 \
-	### 
-```
-Change like this. (If you need, the much greater value of `--outFilterMultimapNmax` like 1000000 is also OK)
+These last three options of the below command are not used by default usate of STAR.
+If you need, the much greater value of `--outFilterMultimapNmax` like 1000000 is also OK.
+
 ```
     ${TOOL_STAR} \
 	--runMode alignReads \
@@ -91,10 +69,8 @@ Change like this. (If you need, the much greater value of `--outFilterMultimapNm
 	--outFileNamePrefix ${OUTPUT_EACH_DIR}/ \
 	--outSAMprimaryFlag AllBestScore \
 	--outSAMmultNmax -1 \
-	--outFilterMultimapNmax 3000 \
-
+	--outFilterMultimapNmax 10000
 ```
-
 
 How to use `./BUILDER_FROM_TEMPLATE.zsh`
 --
