@@ -3,60 +3,94 @@
 ## Summary
 
 This is the MORE-RNAseq pipeline, a series of scripts analyzing RNA sequencing of genes and L1 transposons.
+(Du J, Nakachi Y, Watanabe R, Bundo M and Iwamoto K. 2023. In preparation)
 
-## Outline of pipeline
+## Outline of workflow
 
-1. Quality check: **CAUTION** NOT PREPARED, DO AS YOU LIKE
-    1. File check by md5/sha1 etc.
-    1. FastQC, fastq-stats (ea-utils), and so on.
-1. Trimming: cutadapt and/or Trimmomatic (if you want, you can use other tools, like TrimGalore! and so on).
-    1. If need, remove G-stretches in R2-tail by cutadapt (optional)
-    1. trim adapters and low-quality reads by Trimmomatic
-1. Mapping and counting: STAR/RSEM
-    1. prepare the references for STAR/RSEM): **CAUTION** YOU NEED THE REWRITE "READ_LENGTH" VALUE BEFORE USE
-    1. mapping: STAR **NOTE** IF YOU NEED, ADDITIONAL OPTIONS AND MODIFIED VALUES ARE AVAILABLE (PLEASE SEE THE COMMENTS IN THIS SCRIPT).
-    1. calculate the expression: RSEM: **NOTE** IF YOU NEED, ADDITIONAL OPTIONS AND MODIFIED VALUES ARE AVAILABLE (PLEASE SEE THE COMMENTS IN THIS SCRIPT).
-    1. create an expected-count data matrix: RSEM and shell scripts
-    1. create TPM and FPKM data matrix: shell script
-1. Detection of DEGs (Differentially Expressed Genes): edgeR (If you want, you can use other tools, like DEseq2, and so on)
-1. Visualization: R scripts (Of course you can make your scripts and use other tools)
+1. Pre-preparation (as you like)
+    1. Quality check, trimming adapter, removing low-quality bases, and so on.
+1. Mapping and counting
+    1. Prepare the references with GTF data of [MORE reference](https://github.com/molbrain/MORE-reference)
+    1. Mapping with prepared reference
+    1. Calculate the expression of L1 transposons and genes
+    1. Create the read-count/TPM data matrix
+1. Summarize the L1 expression and visualization
+1. Detection of Differentially Expressed L1s/Genes and Visualization
 
 
-## Developed environment
+## Recommended pipeline
 
-- CentOS7/8/Rockey
-- perl5
-- java
-- R and Bioconductor
+### Environment of developing this pipeline
 
+- CentOS7 (release XXX)
+- zsh (ver.XXX)
+- Perl (ver.XXX)
+- R (ver.XXX)
 
-## Requires, Recommends
+### Require tools for this pipeline
 
-- perl5
-- java
-- R and Bioconductor
-- Trimming tools (like cutadapt and Trimmomatic)
-- STAR
-- RSEM
+- [FastQC]()
+- [ea-utils](): for fastq-stats
+- [Cutadapt]()
+- [Trimmomatic]()
+- [Perl](): for RSEM and some pipeline scripts
+- [R](https://www.r-project.org) and [Bioconductor](https://www.bioconductor.org) ([edgeR](https://bioconductor.org/packages/release/bioc/html/edgeR.html))
+- [STAR](https://github.com/alexdobin/STAR/)
+- [RSEM](http://deweylab.github.io/RSEM/)
 
+### Scripts of the pipeline
 
-
-## Usage
-
-If you use the pipeline of "MORE-RNAseq" with , you have to change the some part of command lines and options as follows:
-
-- In the step of creating the reference for STAR/RSEM (as 009_prepare_star_rsem_ref.zsh), alter the proper genome (e.g. GRCh38).
-
-Change like this.
-GENOME=GRCh38
-L1_GTF=/home/Shared/Miscellaneous/Public/GTF_with_fli_L1/L1_Utr5toUtr3.${GENOME}.gtf
-cat ${L1_GTF} >> ${REF_GTF}
+#### List
 
 
-- In the STAR mapping step (as template_010_STAR_mapping.zsh), uncomment the three lines and add these three options to the last line of the STAR command:
-These last three options of the below command are not used by default usate of STAR.
-If you need, the much greater value of `--outFilterMultimapNmax` like 1000000 is also OK.
+#### Usage
 
+Please copy all scripts in the same directory as the below image.
+Your data (fastq files) is needed to copy into the subdirectory named `Rawdata`.
+After modifying some parts of the above scripts properly, do these sequentially by the order of the number of each script in the same directory.
+The information on the parts which should be modified and the other points to take care of are described in the below Note section.
+
+#### Note
+
+When you use this pipeline of MORE-RNAseq, you have to take care of some parts in scripts as follows:
+
+1. In all of the scripts, the path information of each tool and directory is referred from the `00000setup.zsh` file.
+1. In the step of creating the reference (`009_prepare_star_rsem_ref.zsh`), write the proper genome as you want (e.g. GRCh38).
+1. In the STAR mapping step (`010_STAR_mapping.zsh`), some options of STAR are not the default.
+1. In the case that RSEM is not available because you are not the admin and cannot install the new libraries to your system, please use local::lib, miniconda/anaconda, Docker, etc.
+
+
+##### Note 1. PATH and VARIABLE information
+
+In all of the scripts, the path information of each tool and directory is referred from the `00000setup.zsh` file.
+You should write the precise PATH for all tools in the `00000setup.zsh` file like the example below.
+```
+    TOOL_STAR=/usr/local/STAR-2.6.0c/bin/Linux_x86_64_static/STAR
+```
+When you already have the tools in your $PATH (for example, the"`which STAR`" command shows the proper PATH, or the "`STAR`" command shows its usage and version information), of course, the below is no problem.
+```
+    TOOL_STAR=STAR
+```
+Like PATH information, the other variables in the `00000setup.zsh` file need to modify for your environment like the example below.
+```
+THREAD=4
+STAR_RSEM_REF_DIR=
+```
+
+##### Note 2. GENOME variable
+The variable of `GENOME` in the `009_prepare_star_rsem_ref.zsh`, is empty as below.
+``` 
+    GENOME=
+```
+If you don't write the proper genome assembly name (`GRCh38` or `GRCm38`) in that, this script may abort without any output.
+Change like the below.
+``` 
+    GENOME=GRCh38
+```
+
+##### Note 3. STAR options
+
+In `010_STAR_mapping.zsh`, the STAR setting is here.
 ```
     ${TOOL_STAR} \
 	--runMode alignReads \
@@ -71,83 +105,11 @@ If you need, the much greater value of `--outFilterMultimapNmax` like 1000000 is
 	--outSAMmultNmax -1 \
 	--outFilterMultimapNmax 10000
 ```
+The last three options of STAR command are not the same as the default usage of STAR (`--outSAMprimaryFlag`, `--outSAMmultNmax`, and `--outFilterMultimapNmax`).
+If you need, the much greater value of `--outFilterMultimapNmax` up to 100000, or additional options like `--winAnchorMultimapNmax` etc are available. Please modify it for your analysis purpose.
 
-How to use `./BUILDER_FROM_TEMPLATE.zsh`
---
+#### Note 4.RSEM installation
 
-`./BUILDER_FROM_TEMPLATE.zsh` is a scripts-creatable-script for a series of scripts to process with many samples with a script-template file like `./template_XXX_script.zsh`.
-
-In this example case, there are several samples in the `./Rawdata` directory like these:
-```
-./Rawdata/MY_SAMPLE_A_DATA_R1.fastq.gz
-./Rawdata/MY_SAMPLE_A_DATA_R2.fastq.gz
-./Rawdata/MY_SAMPLE_B_DATA_R1.fastq.gz
-./Rawdata/MY_SAMPLE_B_DATA_R2.fastq.gz
-./Rawdata/MY_SAMPLE_C_DATA_R1.fastq.gz
-./Rawdata/MY_SAMPLE_C_DATA_R2.fastq.gz
-```
-
-
-The command usage is here:
-```
-./BUILDER_FROM_TEMPLATE.zsh template_000_example.zsh list_dataName.txt
-```
-
-`./list_dataName.txt` as a list of data names is like this:
-```
-SAMPLE_A
-SAMPLE_B
-SAMPLE_C
-```
-
-And `./template_000_example.zsh` as a template is like this:
-```
-#!/bin/zsh
-
-REPLACING=___SAMPLE___
-
-ls -Fal ./Rawdata/MY_${REPLACING}_DATA_R1.fastq.gz
-ls -Fal ./Rawdata/MY_${REPLACING}_DATA_R2.fastq.gz
-```
-
-
-`./BUILDER_FROM_TEMPLATE.zsh` replaces "\_\_\_SAMPLE\_\_\_" with each data name of list_dataName.txt in `template_000_example.zsh` and creates the each corresponding script in the `./scripts` directory.
-```
-./scripts/000_template_01.zsh (for SAMPLE_A)
-./scripts/000_template_03.zsh (for SAMPLE_B)
-./scripts/000_template_03.zsh (for SAMPLE_C)
-```
-
-And create executable files for qsub as `./query_000.sh` like this:
-```
-#!/bin/sh
-
-./scripts/000_template_01.zsh > LOGS/LOG_000_template_01.txt 2>&1
-./scripts/000_template_02.zsh > LOGS/LOG_000_template_02.txt 2>&1
-./scripts/000_template_03.zsh > LOGS/LOG_000_template_03.txt 2>&1
-```
-
-`./query_000.sh` is executable by command as follows, with `qsub` (the job scheduler system in cluster servers):
-```
-qsub query_000.sh
-```
-
-Of course, you can execute each script like `./scripts/000_template_01.zsh` separately, with SCREEN, tmux, and so on.
-
-Or do that:
-```
-./scripts/000_template_01.zsh > LOGS/LOG_000_template_01.txt 2>&1
-```
-
-When the script is working, log information from tools and systems is described in each `LOGS/LOG_XXX_XXXXX_XX.txt` file. So, if you do it in the background by qsub or screen, you can monitor the log files like this:
-```
-less LOGS/LOG_000_template_01.txt
-# and shift-F can move and see the newest lines of the log text.
-```
-
-Or
-```
-tail --lines=+5 LOGS/LOG_000_template_*.txt | less
-```
-
+In some cases, RSEM is not available in your system, because you are not the admin and cannot install the new libraries.
+If that is, please use local::lib or miniconda/anaconda for the installation to your home directories, or use Docker/Singularity, etc.
 
