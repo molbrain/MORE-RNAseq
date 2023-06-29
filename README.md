@@ -40,16 +40,41 @@ This is the MORE-RNAseq pipeline, a series of scripts analyzing RNA sequencing o
 
 ### Scripts of the pipeline
 
-#### List
-
-
 #### Usage
 
 The typical uage for MORE-RNAseq for the bulk pair-end RNA-seq data.
 
 Please copy all scripts in the your same working directory as the below image.
-
-Your data (fastq files) is needed to copy into the subdirectory named `Rawdata`.
+```
+*(Working directory)/ ──┬─ *Rawdata/ ─┬─ (sampleA_R1.fa.gz)
+                        │             ├─ (sampleA_R2.fa.gz)
+                        │             ├─ (sampleB_R1.fa.gz)
+                        │             ├─ ...
+                        │             └─ ...
+                        │
+                        ├─ *Sample_Annotation.txt
+                        │
+                        ├─ *00000setup.zsh
+                        ├─ 001_....zsh
+                        ├─ 002_....zsh
+                        ┊  ...
+                        ┊  ...
+                        ├─ 019_....zsh
+                        ├─ 020_....zsh
+                        │
+                        ├─ Scripts/ ──┬─ 000_....pl
+                        │             ├─ 020_....Rscript.txt
+                        │             ├─ ...
+                        │             └─ ...
+                        │
+                        └─ RESULTS/ ──┬─ ...
+                                      ├─ ...
+                                      └─ LOGS/ ─┬─ LOG_001_....txt
+                                                └─ ...
+* : need to prepare/modify
+```
+Astarisk(*) indicates the files/directories need to prepare/modify.
+Your RNA-seq data (fastq files) is needed to copy into the subdirectory named `Rawdata` in your working directory.
 
 After modifying some parts of the above scripts properly, do these sequentially by the order of the number of each script in the same directory.
 
@@ -62,7 +87,6 @@ The workflow is the typical usage for MORE-RNAseq, so of course you can modify t
 When you use this pipeline of MORE-RNAseq, you have to take care of some parts in scripts as follows:
 
 1. In all of the scripts, the path information of each tool and directory is referred from the `00000setup.zsh` file.
-1. In the step of creating the reference (`009_prepare_star_rsem_ref.zsh`), write the proper genome as you want (e.g. GRCh38).
 1. In the STAR mapping step (`010_STAR_mapping.zsh`), some options of STAR are not the default.
 1. In the case that RSEM is not available because you are not the admin and cannot install the new libraries to your system, please use local::lib, miniconda/anaconda, Docker, etc.
 
@@ -71,34 +95,39 @@ When you use this pipeline of MORE-RNAseq, you have to take care of some parts i
 
 In all of the scripts, the path information of each tool and directory is referred from the `00000setup.zsh` file.
 You should write the precise PATH for all tools in the `00000setup.zsh` file like the example below.
-```
+```zsh
     TOOL_STAR=/usr/local/STAR-2.6.0c/bin/Linux_x86_64_static/STAR
 ```
 When you already have the tools in your $PATH (for example, the `which STAR` command shows the proper PATH, or just the `STAR` command shows its usage and version information), of course, the below is no problem.
-```
+```zsh
     TOOL_STAR=STAR
 ```
 Like PATH information, the other variables in the `00000setup.zsh` file need to modify for your environment like the example below.
-```
-THREAD=4
-STAR_RSEM_REF_DIR=
-```
-
-##### Note 2. GENOME variable
-The variable of `GENOME` in the `009_prepare_star_rsem_ref.zsh`, is empty as below.
-``` 
+Especially the variable of `GENOME` in the `00000setup.zsh`, is empty as below.
+```zsh
     GENOME=
 ```
 If you don't write the proper genome assembly name (`GRCh38` or `GRCm38`) in that, this script may abort without any output.
 Change like the below.
-``` 
-    GENOME=GRCh38
+```zsh
+     GENOME=GRCh38   #for human GRCh38 genome
 ```
+Or,
+```zsh
+    GENOME=GRCm38    #for mouse GRCm38 genome
+```
+
+
+Additionally, several variables are needed to modify to your environment. For example, the below ones.
+```zsh
+   THREAD=4   #number of CPU cores
+```
+
 
 ##### Note 3. STAR options
 
 In `010_STAR_mapping.zsh`, the STAR setting is here.
-```
+```zsh
     ${TOOL_STAR} \
 	--runMode alignReads \
 	--genomeDir ${STAR_RSEM_REF_DIR} \
@@ -121,3 +150,4 @@ If your RNA-seq data is single-end or stranded, please modified the setting in S
 
 In some cases, RSEM is not available in your system, because you are not the admin and cannot install the new libraries.
 If that is, please use local::lib or miniconda/anaconda for the installation to your home directories, or use Docker/Singularity, etc.
+
