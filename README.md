@@ -45,10 +45,17 @@ This is the MORE-RNAseq pipeline, a series of scripts analyzing RNA sequencing o
 
 #### Usage
 
-Please copy all scripts in the same directory as the below image.
+The typical uage for MORE-RNAseq for the bulk pair-end RNA-seq data.
+
+Please copy all scripts in the your same working directory as the below image.
+
 Your data (fastq files) is needed to copy into the subdirectory named `Rawdata`.
+
 After modifying some parts of the above scripts properly, do these sequentially by the order of the number of each script in the same directory.
+
 The information on the parts which should be modified and the other points to take care of are described in the below Note section.
+
+The workflow is the typical usage for MORE-RNAseq, so of course you can modify the pipeline and exchange the tools as you like.
 
 #### Note
 
@@ -67,7 +74,7 @@ You should write the precise PATH for all tools in the `00000setup.zsh` file lik
 ```
     TOOL_STAR=/usr/local/STAR-2.6.0c/bin/Linux_x86_64_static/STAR
 ```
-When you already have the tools in your $PATH (for example, the"`which STAR`" command shows the proper PATH, or the "`STAR`" command shows its usage and version information), of course, the below is no problem.
+When you already have the tools in your $PATH (for example, the `which STAR` command shows the proper PATH, or just the `STAR` command shows its usage and version information), of course, the below is no problem.
 ```
     TOOL_STAR=STAR
 ```
@@ -108,8 +115,9 @@ In `010_STAR_mapping.zsh`, the STAR setting is here.
 The last three options of STAR command are not the same as the default usage of STAR (`--outSAMprimaryFlag`, `--outSAMmultNmax`, and `--outFilterMultimapNmax`).
 If you need, the much greater value of `--outFilterMultimapNmax` up to 100000, or additional options like `--winAnchorMultimapNmax` etc are available. Please modify it for your analysis purpose.
 
+If your RNA-seq data is single-end or stranded, please modified the setting in STAR and RSEM commands.
+
 #### Note 4.RSEM installation
 
 In some cases, RSEM is not available in your system, because you are not the admin and cannot install the new libraries.
 If that is, please use local::lib or miniconda/anaconda for the installation to your home directories, or use Docker/Singularity, etc.
-
