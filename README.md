@@ -180,7 +180,7 @@ then
         ${INPUT_BAM} \
         ${RSEM_REF_DIR}/${REF_NAME} \
         ${OUTPUT_EACH_DIR}/${NUM}
-elsif [ $ISPAIREDREAD "paired-end" ]
+elsif [ $ISPAIREDREAD "single-end" ]
     ${TOOL_RSEM_CALC_EXPR} \
         --alignments \
         --num-threads ${THREAD} \
