@@ -38,42 +38,39 @@ This is the MORE-RNAseq pipeline, a series of scripts analyzing RNA sequencing o
 - [STAR](https://github.com/alexdobin/STAR/)
 - [RSEM](http://deweylab.github.io/RSEM/)
 
-### Scripts of the pipeline
-
-#### Usage
+### Usage
 
 The typical uage for MORE-RNAseq for the bulk pair-end RNA-seq data.
 
 Please copy all scripts in the your same working directory as the below image.
 ```
-*(Working directory)/ ──┬─ *Rawdata/ ─┬─ (sampleA_R1.fa.gz)
-                        │             ├─ (sampleA_R2.fa.gz)
-                        │             ├─ (sampleB_R1.fa.gz)
-                        │             ├─ ...
-                        │             └─ ...
+**(Working directory)/ ─┬─ **Rawdata/ ───┬─ *sampleA_R1.fastq.gz
+                        │                ├─ *sampleA_R2.fastq.gz
+                        │                ├─ *sampleB_R1.fastq.gz
+                        │                ├─  ...
+                        │                └─  ...
+                        ├─ * Sample_Annotation.txt
+                        ├─ * 00000setup.zsh
+                        ├─ **Reference/ ─┬─ **Original/ ─┬─ **Home_sapiens.GRCh38.dna.primary_assembly.fa.gz
+                        │                │               └─ **Home_sapiens.GRCh38.102.gtf.gz
+                        │                │
+                        │                ├─  Home_sapiens.GRCh38.102.withMORE.gtf.gz         # automatically created
+                        │                └─  Home_sapiens.GRCh38.dna.primary_assembly.fa.gz  # automatically created
                         │
-                        ├─ *Sample_Annotation.txt
-                        │
-                        ├─ *00000setup.zsh
-                        ├─ 001_....zsh
-                        ├─ 002_....zsh
-                        ┊  ...
-                        ┊  ...
-                        ├─ 019_....zsh
-                        ├─ 020_....zsh
-                        │
-                        ├─ Scripts/ ──┬─ 000_....pl
-                        │             ├─ 020_....Rscript.txt
-                        │             ├─ ...
-                        │             └─ ...
-                        │
-                        └─ RESULTS/ ──┬─ ...
-                                      ├─ ...
-                                      └─ LOGS/ ─┬─ LOG_001_....txt
-                                                └─ ...
-* : need to prepare/modify
+                        ├─  Exec_MORE-RNAseq_01.zsh  # provided
+                        ├─  MORE-RNAseq/    ─┬─ ...  # provided
+                        │                    ├─ ...
+                        │                    └─ ...
+                        ├─  MORE-reference/ ─┬─ ...  # provided
+                        │                    ├─ ...
+                        │                    └─ ...
+                        ├─  LOGS/  # automatically created
+                        └─  TEMP/  # automatically created
+
+** : need to prepare by the user (create/download)
+*  : need to modify by the user (edit/confirm)
 ```
-Astarisk(*) indicates the files/directories need to prepare/modify.
+Asterisk (\*\* or *) indicates the files/directories that need to prepare or modify, respectively.
 Your RNA-seq data (fastq files) is needed to copy into the subdirectory named `Rawdata` in your working directory.
 
 After modifying some parts of the above scripts properly, do these sequentially by the order of the number of each script in the same directory.
@@ -82,7 +79,22 @@ The information on the parts which should be modified and the other points to ta
 
 The workflow is the typical usage for MORE-RNAseq, so of course you can modify the pipeline and exchange the tools as you like.
 
-#### Note
+
+After creating the directory `Reference` and the subdirectory `Original`, Prepare the reference file in `./Reference/Original` by download.
+For example, like the below command.
+```
+## Load the GENOME, SPECIES, CAP_SPECIES, and ENSRELEASE
+## or set the variables directory, like as GENOME, SPECIES, CAP_SPECIES, and ENSRELEASE
+source 00000setup.zsh
+
+## Download the references (fasta and gtf) from Ensembl directly
+wget \
+    --directory-prefix=./Reference/Original \
+    ftp://ftp.ensembl.org/pub/release-${ENSRELEASE}/fasta/${SPECIES}/dna/${CAP_SPECIES}.${GENOME}.dna.primary_assembly.fa.gz \
+    ftp://ftp.ensembl.org/pub/release-${ENSRELEASE}/gtf/${SPECIES}/${CAP_SPECIES}.${GENOME}.${ENSRELEASE}.gtf.gz
+```
+
+### Note
 
 When you use this pipeline of MORE-RNAseq, you have to take care of some parts in scripts as follows:
 
@@ -91,7 +103,7 @@ When you use this pipeline of MORE-RNAseq, you have to take care of some parts i
 1. In the case that RSEM is not available because you are not the admin and cannot install the new libraries to your system, please use local::lib, miniconda/anaconda, Docker, etc.
 
 
-##### Note 1. PATH and VARIABLE information
+#### Note 1. PATH and VARIABLE information
 
 In all of the scripts, the path information of each tool and directory is referred from the `00000setup.zsh` file.
 You should write the precise PATH for all tools in the `00000setup.zsh` file like the example below.
@@ -118,13 +130,13 @@ Or,
 ```
 
 
-Additionally, several variables are needed to modify to your environment. For example, the below ones.
+Additionally, several variables are needed to modify your environment. For example, the below ones.
 ```zsh
    THREAD=4   #number of CPU cores
 ```
 
 
-##### Note 3. STAR options
+#### Note 2. STAR options
 
 In `010_STAR_mapping.zsh`, the STAR setting is here.
 ```zsh
@@ -142,12 +154,14 @@ In `010_STAR_mapping.zsh`, the STAR setting is here.
 	--outFilterMultimapNmax 10000
 ```
 The last three options of STAR command are not the same as the default usage of STAR (`--outSAMprimaryFlag`, `--outSAMmultNmax`, and `--outFilterMultimapNmax`).
-If you need, the much greater value of `--outFilterMultimapNmax` up to 100000, or additional options like `--winAnchorMultimapNmax` etc are available. Please modify it for your analysis purpose.
+The value of `--outFilterMultimapNmax` is defined as the `OUTFILTERMULTIMAPNMAX` variable in the `00000setup.zsh` file. and the default value in the MORE-RNAseq pipeline is `10000`.  If you need, the much greater value of `--outFilterMultimapNmax` up to 100000, or additional options like `--winAnchorMultimapNmax` etc are available. Please modify it for your analysis purpose.
 
-If your RNA-seq data is single-end or stranded, please modified the setting in STAR and RSEM commands.
+If your RNA-seq data is single-end or stranded, please modify the STAR and RSEM command settings.
 
-#### Note 4.RSEM installation
+#### Note 3. RSEM options
+
+
+#### Note 4. Required tool installation
 
 In some cases, RSEM is not available in your system, because you are not the admin and cannot install the new libraries.
 If that is, please use local::lib or miniconda/anaconda for the installation to your home directories, or use Docker/Singularity, etc.
-
