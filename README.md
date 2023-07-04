@@ -149,16 +149,61 @@ In `010_STAR_mapping.zsh`, the STAR setting is here.
 	--readFilesIn ${INPUT_FASTQ_R1} ${INPUT_FASTQ_R2} \
 	--outSAMtype BAM SortedByCoordinate \
 	--outFileNamePrefix ${OUTPUT_EACH_DIR}/ \
-	--outSAMprimaryFlag AllBestScore \
 	--outSAMmultNmax -1 \
+	--outSAMprimaryFlag AllBestScore \
 	--outFilterMultimapNmax 10000
 ```
-The last three options of STAR command are not the same as the default usage of STAR (`--outSAMprimaryFlag`, `--outSAMmultNmax`, and `--outFilterMultimapNmax`).
-The value of `--outFilterMultimapNmax` is defined as the `OUTFILTERMULTIMAPNMAX` variable in the `00000setup.zsh` file. and the default value in the MORE-RNAseq pipeline is `10000`.  If you need, the much greater value of `--outFilterMultimapNmax` up to 100000, or additional options like `--winAnchorMultimapNmax` etc are available. Please modify it for your analysis purpose.
+The last two options `--outFilterMultimapNmax` and `--outSAMprimaryFlag` of the above STAR command are not the same as the default usages of STAR.
+The value of `--outFilterMultimapNmax` above example is defined as 10000 for the MORE-RNAseq pipeline.
+(The default original values of STAR are `OneBestScore` and `50`, respectively.)
+The much greater value of `--outFilterMultimapNmax` like 100000 is also OK.
+If you need, additional options like `--winAnchorMultimapNmax`, `--bamRemoveDuplicatesType`, etc are available.
+Please modify the scripts for your analysis purposes and proper calculations.
 
-If your RNA-seq data is single-end or stranded, please modify the STAR and RSEM command settings.
+If your RNA-seq data is single-end, you should modify to the below setting in `00000setup.zsh`. (Default is `ISPAIREDREAD=paired-end`)
+```zsh
+ISPAIREDREAD=single-end
+```
 
 #### Note 3. RSEM options
+
+In `013_rsem_calc_expr.zsh`, the RSEM (rsem_calclation-expression) setting is here.
+```zsh
+if [ $ISPAIREDREAD "paired-end" ]
+then
+    ${TOOL_RSEM_CALC_EXPR} \
+        --alignments \
+        --paired-end \
+        --num-threads ${THREAD} \
+        --strandedness ${STRANDNESS} \
+        --append-names \
+        ${INPUT_BAM} \
+        ${RSEM_REF_DIR}/${REF_NAME} \
+        ${OUTPUT_EACH_DIR}/${NUM}
+elsif [ $ISPAIREDREAD "paired-end" ]
+    ${TOOL_RSEM_CALC_EXPR} \
+        --alignments \
+        --num-threads ${THREAD} \
+        --strandedness ${STRANDNESS} \
+        --append-names \
+        ${INPUT_BAM} \
+        ${RSEM_REF_DIR}/${REF_NAME} \
+        ${OUTPUT_EACH_DIR}/${NUM}
+fi
+```
+
+If your RNA-seq data is single-end, you should modify to the below setting in `00000setup.zsh`. (Default is `ISPAIREDREAD=paired-end`)
+```zsh
+ISPAIREDREAD=single-end
+```
+With the settings above, `--paired-end` option will not be used.
+
+Additionally, your RNA-seq data was prepared by the 'stranded' library protocol, please modify the below setting in `00000setup.zsh`.
+RSEM default is `--strandedness none`, and MORE-RNAseq pipeline (this example) is also set `STRANDEDNESS=none` in `00000setup.zsh`.
+For Illumina TruSeq Stranded protocols, should use 'reverse'. 
+```zsh
+STRANDEDNESS=reverse
+```
 
 
 #### Note 4. Required tool installation
