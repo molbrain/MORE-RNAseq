@@ -1,0 +1,113 @@
+library(edgeR)
+library(genefilter)
+library(org.Mm.eg.db)
+
+#source("020_001_dataLoad.R.txt")
+
+PBSset<-intersect(which(data.Annot$Feature1=="PBS"),which(data.Annot$Dataset=="PolyIC"))
+PolyICset<-intersect(intersect(which(data.Annot$Feature1=="PolyIC"),which(data.Annot$Dataset=="PolyIC")),which(rownames(data.Annot)!="TR_2416_025"))
+
+useSample <- rownames(data.Annot)[which(data.Annot$Dataset=="PolyIC")]
+useAnnot <- data.Annot[useSample,]
+
+
+
+
+
+#useTPM <- TPM[,useSample]
+#useCOUNT <- COUNT[,useSample]
+
+useTPM <- TPM[grep("^L1",rownames(TPM)),useSample]
+useCOUNT <- COUNT[grep("^L1",rownames(TPM)),useSample]
+
+#useTPM <- TPM[grep("^ENS",rownames(TPM)),useSample]
+#useCOUNT <- COUNT[grep("^ENS",rownames(TPM)),useSample]
+
+
+
+
+
+
+useMean.logTPM.PBS <-rowMeans(log(useTPM[,rownames(data.Annot)[PBSset]] +1,2))
+useMean.logTPM.PolyIC <-rowMeans(log(useTPM[,rownames(data.Annot)[PolyICset]] +1,2))
+
+
+
+GROUP <- useAnnot$Feature1
+
+
+#################################
+
+
+design <- model.matrix(~0+GROUP)
+colnames(design) <- sub("GROUP","",colnames(design))
+
+y <- DGEList(counts = useCOUNT, group = GROUP)
+#keep <- filterByExpr(y,design)
+#y <- y[keep, , keep.lib.sizes=FALSE]
+
+
+
+mean.logTPM.PBS <- useMean.logTPM.PBS[rownames(y)]
+mean.logTPM.PolyIC <- useMean.logTPM.PolyIC[rownames(y)]
+Diff.mean.logTPM <- mean.logTPM.PolyIC - mean.logTPM.PBS
+
+minus3sd <- mean(Diff.mean.logTPM)- (3*sd(Diff.mean.logTPM))
+plus3sd <- mean(Diff.mean.logTPM)+ (3*sd(Diff.mean.logTPM))
+
+which(Diff.mean.logTPM < minus3sd)
+which(Diff.mean.logTPM > plus3sd)
+
+
+y <- calcNormFactors(y)
+
+y <- estimateGLMCommonDisp(y, design)
+y <- estimateGLMTrendedDisp(y, design)
+y <- estimateGLMTagwiseDisp(y, design)
+
+fit <- glmQLFit(y, design)
+
+pdf(paste("check_MDS_BCV_QLDisp.pdf"))
+plotMDS(y,col=c("tomato","grey4")[factor(GROUP)])
+legend("topleft",levels(factor(GROUP)),text.col=c("grey4","tomato")[levels(factor(GROUP))],pch=16,col=c("grey4","tomato")[factor(levels(factor(GROUP)))])
+plotBCV(y)
+plotQLDisp(fit)
+dev.off()
+
+contrasts <- makeContrasts(
+	QL=PolyIC - PBS,
+	levels=design
+)
+qlf  <- glmQLFTest(fit,contrast=contrasts)
+qltop  <- topTags(qlf, n=nrow(qlf$table))[[1]][rownames(y),]
+
+#> which(rownames(qltop)!=names(Diff.mean.logTPM))
+#integer(0)
+
+
+
+#EDGER_STAT<-"FDR"
+EDGER_STAT<-"PValue"
+hits <- rownames(qltop)[intersect(union(which(Diff.mean.logTPM > plus3sd),which(Diff.mean.logTPM < minus3sd)),which(qltop[,EDGER_STAT]<0.05))]
+#hits <- rownames(qltop)[intersect(which(Diff.mean.logTPM > plus3sd),which(qltop[,EDGER_STAT]<0.05))]
+pdf("heatmap.pdf")
+heatmap(log(useTPM +1,2)[hits,])
+dev.off()
+
+SCATTERPLOT_XMIN <- -1*max(abs(Diff.mean.logTPM))*1.2
+SCATTERPLOT_XMAX <-    max(abs(Diff.mean.logTPM))*1.2
+
+pdf("scatterplot.pdf")
+plot(Diff.mean.logTPM,-1*log(qltop[,EDGER_STAT],10),xlim=c(SCATTERPLOT_XMIN,SCATTERPLOT_XMAX),type="n",xlab="Difference of mean logTPM (PolyIC - PBS)",ylab=paste0("-1*log10",EDGER_STAT,""))
+points(Diff.mean.logTPM,-1*log(qltop[,EDGER_STAT],10),pch=16,col="#22222230")
+segments(plus3sd,-0.1,plus3sd,max(-1*log(qltop[hits,EDGER_STAT],10))*1.2,col="pink",lty=2)
+segments(minus3sd,-0.1,minus3sd,max(-1*log(qltop[hits,EDGER_STAT],10))*1.2,col="pink",lty=2)
+segments(-10,-1*log(0.05,10),10,-1*log(0.05,10),col="pink",lty=2)
+points(Diff.mean.logTPM[hits],-1*log(qltop[hits,EDGER_STAT],10),pch=16,col="red")
+text(Diff.mean.logTPM[hits],-1*log(qltop[hits,EDGER_STAT],10),labels=paste(GeneDesc[hits,"Symbol"],sub("L1-fli-","",GeneDesc[hits,"Type"])),col="red",cex=.5,adj=c(-.2,NA))
+dev.off()
+
+write.table(data.frame(Id=hits,Diff.mean.logTPM=Diff.mean.logTPM[hits],pValue=qltop[hits,"PValue"],FDR=qltop[hits,"FDR"],GeneDesc[hits,],TPM[hits,]),"hits.txt",sep="\t",eol="\n",col.names=TRUE,quot=FALSE,)
+
+
+

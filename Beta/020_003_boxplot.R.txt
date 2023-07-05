@@ -1,0 +1,82 @@
+#DATASET<-"PolyIC"
+
+#library(exactRankTests)
+
+PBSset<-intersect(which(data.Annot$Dataset=="PolyIC"),which(data.Annot$Feature1=="PBS"))
+PolyICset<-intersect(intersect(which(data.Annot$Dataset=="PolyIC"),which(data.Annot$Feature1=="PolyIC")),which(rownames(data.Annot)!="TR_2416_025"))
+
+illust_Box_L1_PolyIC <- function(INPUTL1,INPUTNAME) {
+	PBSdata <- colSums(TPM[INPUTL1,PBSset])
+	PolyICdata <- colSums(TPM[INPUTL1,PolyICset])
+	#WILCOX <- wilcox.exact(x=PBSdata,y=PolyICdata,paired=F)
+	STUDT <- t.test(x=PBSdata,y=PolyICdata,paired=F)
+
+	BOX <- boxplot(list(
+			PBC=PBSdata,
+			PolyIC=PolyICdata
+		),
+		main=paste0(INPUTNAME," L1 Expression"),
+		ylab="Total expression lebel (TPM)",
+		sub=paste0(length(INPUTL1)," of fli-L1s, ",INPUTNAME, "; p=",STUDT$p.value," (t.test)"),
+		col=c("lightgrey","pink"),
+		las=1
+	)
+	points(jitter(rep(1,length(PBSset))),PBSdata,col="black")
+	points(jitter(rep(2,length(PolyICset))),PolyICdata,col="red")
+	Lab.1 <- paste(data.Annot[colnames(TPM[,PBSset]),"Sample"],data.Annot[colnames(TPM[,PBSset]),"Feature1"])
+	Lab.2 <- paste(data.Annot[colnames(TPM[,PolyICset]),"Sample"],data.Annot[colnames(TPM[,PolyICset]),"Feature1"])
+	text(rep(1,length(PBSset)),PBSdata,labels=Lab.1,cex=.5,adj=c(-0.5,NA),col="black")
+	text(rep(2,length(PolyICset)),PolyICdata,labels=Lab.2,cex=.5,adj=c(-0.5,NA),col="red")
+
+}
+
+
+
+PLOTL1<-grep("^L1fli",rownames(COUNT))
+PLOTNAME<-"whole"
+pdf(paste0("boxplot_",PLOTNAME,".pdf"))
+illust_Box_L1_PolyIC(PLOTL1,PLOTNAME)
+dev.off()
+
+PLOTL1<-which(GeneDesc$Type=="L1-fli-A")
+PLOTNAME<-"subfamily A"
+pdf(paste0("boxplot_",PLOTNAME,".pdf"))
+illust_Box_L1_PolyIC(PLOTL1,PLOTNAME)
+dev.off()
+
+
+
+
+
+PLOTL1<-which(GeneDesc$Type=="L1-fli-G")
+PLOTNAME<-"subfamily G"
+pdf(paste0("boxplot_",PLOTNAME,".pdf"))
+illust_Box_L1_PolyIC(PLOTL1,PLOTNAME)
+dev.off()
+
+PLOTL1<-which(GeneDesc$Type=="L1-fli-G.T")
+PLOTNAME<-"subfamily GT"
+pdf(paste0("boxplot_",PLOTNAME,".pdf"))
+illust_Box_L1_PolyIC(PLOTL1,PLOTNAME)
+dev.off()
+
+PLOTL1<- which(GeneDesc$Type=="L1-fli-T")
+PLOTNAME<-"subfamily T"
+pdf(paste0("boxplot_",PLOTNAME,".pdf"))
+illust_Box_L1_PolyIC(PLOTL1,PLOTNAME)
+dev.off()
+
+
+PLOTL1<- union(which(GeneDesc$Type=="L1-fli-G"),which(GeneDesc$Type=="L1-fli-G.T"))
+PLOTNAME<-"subfamily GandGT"
+pdf(paste0("boxplot_",PLOTNAME,".pdf"))
+illust_Box_L1_PolyIC(PLOTL1,PLOTNAME)
+dev.off()
+
+
+PLOTL1<- which(GeneDesc$Type=="L1-fli-F")
+PLOTNAME<-"subfamily F"
+pdf(paste0("boxplot_",PLOTNAME,".pdf"))
+illust_Box_L1_PolyIC(PLOTL1,PLOTNAME)
+dev.off()
+
