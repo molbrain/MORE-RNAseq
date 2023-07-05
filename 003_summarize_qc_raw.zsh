@@ -1,7 +1,7 @@
 #!/bin/zsh
 
 ##############################
-## 002_summarize_fastqc.zsh
+## 003_summarize_qc_raw.zsh
 #############################
 
 echo -n "## START : $0 "
