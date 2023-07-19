@@ -200,9 +200,9 @@ then
 fi
 ```
 
-If your RNA-seq data is single-end, you should modify to the below setting in `00000setup.zsh`. (Default is `ISPAIREDREAD=paired-end`)
+If your RNA-seq data is single-end, you should modify to the below setting in `00000setup.zsh`. (Default is `ISPAIREDREAD=2` ; paired-end)
 ```zsh
-ISPAIREDREAD=single-end
+ISPAIREDREAD=1
 ```
 With the settings above, `--paired-end` option will not be used.
 
