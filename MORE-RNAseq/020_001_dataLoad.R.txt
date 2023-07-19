@@ -1,0 +1,29 @@
+## R scirpt
+## 020_001_dataLoad.R.txt
+
+
+RSEM.expected_count <- read.table("./Results/forR_RSEM.gene.expected_count.matrix.txt",sep="\t",header=TRUE,row.names=1)
+COUNT <- as.matrix(RSEM.expected_count[,c(2:ncol(RSEM.expected_count))])
+
+RSEM.TPM <- read.table("./Results/forR_RSEM.gene.TPM.matrix.txt",sep="\t",header=TRUE,row.names=1)
+TPM <- as.matrix(RSEM.TPM[,c(2:ncol(RSEM.TPM))])
+
+dim(COUNT)
+dim(TPM)
+which(rownames(TPM)!=rownames(COUNT))
+#integer(0)
+
+GeneSymbol <- RSEM.expected_count[,1]
+names(GeneSymbol) <- rownames(RSEM.expected_count)
+length(GeneSymbol)
+
+
+data.Annot <- read.table("./Sample_Annot.txt",header=TRUE,row.names=1)
+which(rownames(data.Annot)!=colnames(COUNT))
+#integer(0)
+# OR
+#data.Annot <- data.Annot[colnames(COUNT),]
+
+tempGeneDesc <- read.table("./Results/forR_GeneDesc.GRCm38.102.plusL1fli.txt",header=TRUE,sep="\t",row.names=1)
+GeneDesc <- tempGeneDesc[rownames(COUNT),]
+dim(GeneDesc)

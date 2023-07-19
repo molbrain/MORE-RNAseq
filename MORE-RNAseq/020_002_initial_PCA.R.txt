@@ -1,0 +1,112 @@
+## R scirpt
+## 020_002_initial_PCA.R.txt
+
+data.Annot$Dataset
+data.Annot$Feature1
+
+DATASET <- "TR-0001"
+dataMatrix <- as.matrix(log(TPM+1,2)[                           ,which(data.Annot$Dataset==DATASET)])
+#dataMatrix <- as.matrix(log(TPM+1,2)[grep("^L1",  rownames(TPM)),which(data.Annot$Dataset==DATASET)])
+#dataMatrix <- as.matrix(log(TPM+1,2)[grep("^ENS", rownames(TPM)),which(data.Annot$Dataset==DATASET)])
+
+Annot <-  data.Annot[which(data.Annot$Dataset==DATASET),]
+
+PCA <- prcomp(t(dataMatrix))
+PCA$loading <- PCA$rotation
+for(i in 1:length(PCA$sdev)) {
+      PCA$loading[,i] <- PCA$rotation[,i] * PCA$sdev[i]
+}
+
+
+PropVar <- PCA$sdev * PCA$sdev/sum(PCA$sdev * PCA$sdev)*100
+
+OVER80 <- 0
+
+for (test80 in 1:length(PCA$sdev)){
+    if(sum(PropVar[1:test80])<80){
+        OVER80 <- test80
+    }
+}
+
+OVER80 <- OVER80 +1
+
+# confirm OVER80
+sum(PropVar[1:OVER80]) > 80
+
+pdf(paste0("PCA_ProportionOfVariance_",DATASET,".pdf"))
+barplot(
+	PropVar,
+	xlab="PC",
+	ylim=c(0,100),
+	ylab="Proportion of Variance (%)",
+	names = colnames(PCA$rotation),
+	col=c(rep('pink',OVER80),rep("grey",length(PCA$sdev)-OVER80)),
+	main="PCA: Importance of components",las=2
+)
+dev.off()
+
+#COL_GROUP <- c(1:length(factor(Annot$Feature1)))[factor(Annot$Feature1)]
+#PCPAIR <- c(1,2)
+#CLOSEUP <- 1
+#PCH <- 16
+
+COL_Scheme_GROUP <- c("red4","green4","blue2","yellow4","pink","green","skyblue","black")
+
+makePlotPDF <-function(PCA,PCPAIR,COL_GROUP,CLOSEUP,PCH){
+
+    persent_X <- round(PropVar[PCPAIR[1]],digits=1)
+    persent_Y <- round(PropVar[PCPAIR[2]],digits=1)
+    xlabel <- paste(colnames(PCA$x)[PCPAIR[1]]," (",persent_X,"%)",sep="")
+    ylabel <- paste(colnames(PCA$x)[PCPAIR[2]]," (",persent_Y,"%)",sep="")
+
+    MAX_XY<-ceiling(max(abs(PCA$x)))
+    MAX_loadXY<-ceiling(max(abs(PCA$loading)))
+
+    ratio_XY_loadXY <- ceiling(MAX_XY/MAX_loadXY)
+
+    COL_loading <- "#ff8c0066"
+    COL_plot <- "#22222260"
+
+
+    plot(
+    	x=NULL,
+        type="n",
+	xlim=c(-1 * MAX_XY/CLOSEUP, MAX_XY/CLOSEUP),
+	ylim=c(-1 * MAX_XY/CLOSEUP, MAX_XY/CLOSEUP),
+        xlab=xlabel,ylab=ylabel,
+	main="PCA",
+        sub=paste(nrow(dataMatrix)," genes")
+        #xaxs="i",yaxs="i",
+        #xaxt="n",yaxt="n",
+    )
+    legend("topright",legend=levels(factor(Annot$Feature1)),text.col=COL_Scheme_GROUP,pch=PCH,col=COL_plot,cex=.5)
+    #axis(side=1, at=seq(-1 * (MAX_XY/CLOSEUP), MAX_XY/CLOSEUP -1,2),line = NA,las=2)
+    #axis(side=2, at=seq(-1 * (MAX_XY/CLOSEUP), MAX_XY/CLOSEUP -1,2),line = NA,las=2)
+    #axis(side=3,at=c(-1*ratio_XY_loadXY/2/CLOSEUP,0,ratio_XY_loadXY/2/CLOSEUP),labels=c("0.5","0","0.5"),col.ticks=COL_loading,line = NA)
+    #axis(side=4,at=c(-1*ratio_XY_loadXY/2/CLOSEUP,0,ratio_XY_loadXY/2/CLOSEUP),labels=c("0.5","0","0.5"),col.ticks=COL_loading,line = NA)
+    #for(i in 1:nrow(PCA$loading)) {
+    #	arrows(
+    #            0,0,
+    #            PCA$loading[i,PCPAIR[1]]*ratio_XY_loadXY/CLOSEUP, PCA$loading[i,PCPAIR[2]]*ratio_XY_loadXY/CLOSEUP,
+    #            col=COL_loading,length=0.1)
+    #	text(
+    #            PCA$loading[i,PCPAIR[1]]*(ratio_XY_loadXY*1.05),
+    #            PCA$loading[i,PCPAIR[2]]*(ratio_XY_loadXY*1.05),
+    #            labels=rownames(PCA$loading)[i],
+    #            col=COL_loading, cex=.4)
+    #}
+    points(PCA$x[,PCPAIR],cex=1,col=COL_plot,pch=PCH)
+    PLOTNAME <- paste0(rownames(Annot),"(",Annot$Sample,", ",Annot$Feature1,")")
+    text(PCA$x[,PCPAIR], labels=PLOTNAME, cex=.4, adj=c(NA,-1),col=COL_GROUP)
+
+}
+
+
+COL_GROUP <- COL_Scheme_GROUP[factor(Annot$Feature1)]
+PCPAIR <- c(1,2)
+CLOSEUP <- 1
+PCH <- 16
+pdf(paste0("PCA_plot_",DATASET,".pdf"))
+makePlotPDF(PCA,PCPAIR,COL_GROUP,CLOSEUP,PCH)
+dev.off()
+
