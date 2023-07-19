@@ -1,0 +1,3 @@
+Data	Sample	Dataset	Feature1	Feature2	Feature3
+Sample_001	CB6N_P1	TR-0001	Treat	E16	102.1
+Sample_002	CB6N_P2	TR-0001	Control	E16	80.3
