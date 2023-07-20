@@ -26,24 +26,24 @@ This is the MORE-RNAseq pipeline, a series of scripts analyzing RNA sequencing o
 
 ### Require tools for this pipeline
 
-- zsh
-- Java
-- Perl
-- [FastQC]()
-- [ea-utils](): for fastq-stats
-- [Cutadapt]()
-- [Trimmomatic]()
-- [Perl](): for RSEM and some pipeline scripts
-- [R](https://www.r-project.org) and [Bioconductor](https://www.bioconductor.org) ([edgeR](https://bioconductor.org/packages/release/bioc/html/edgeR.html))
+- [zsh](https://www.zsh.org)
+- [Perl](https://www.perl.org): for RSEM and some pipeline scripts
 - [STAR](https://github.com/alexdobin/STAR/)
 - [RSEM](http://deweylab.github.io/RSEM/)
+- [Java](https://www.java.com)
+- [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
+- [ea-utils](http://expressionanalysis.github.io/ea-utils/): for fastq-stats
+- [Cutadapt](https://github.com/marcelm/cutadapt/)
+- [Trimmomatic](https://github.com/usadellab/Trimmomatic)
+- [R](https://www.r-project.org) and [Bioconductor](https://www.bioconductor.org) ([edgeR](https://bioconductor.org/packages/release/bioc/html/edgeR.html))
 
 ### Environment of developing this pipeline
 
-- CentOS7 (release XXX)
-- zsh (ver.XXX)
-- Perl (ver.XXX)
-- R (ver.XXX)
+- CentOS7 (v7.5.1804)
+- zsh (v5.0.2)
+- Java (1.8.0_191)
+- Perl (v5.16.3)
+- R (v3.5.1)
 
 ### Usage
 
