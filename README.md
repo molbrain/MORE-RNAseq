@@ -24,6 +24,9 @@ This is the MORE-RNAseq pipeline, a series of scripts analyzing RNA sequencing o
 
 ## Recommended pipeline
 
+Run the exec scripts **`Exec_MORE-RNAseq_01.zsh`** and **`Exec_MORE-RNAseq_02.zsh`**, then use the R scripts (020_...R.txt).
+If you have already trimmed fastq files, maybe `Exec_MORE-RNAseq_01.zsh` is not needed.
+
 ### Require tools for this pipeline
 
 - [zsh](https://www.zsh.org)
@@ -75,7 +78,7 @@ Please copy all scripts in the your same working directory as the below image.
                         ├─  MORE-RNAseq/    ─┬─ 000.zsh  # provided
                         │                    ├─ 001.zsh  # provided
                         │                    ├─ ...
-                                             ├─  MORE-reference/ ─┬─ ...  # provided
+                        │                    ├─  MORE-reference/ ─┬─ ...  # provided
                         │                                         ├─ ...
                         │                                         └─ ...
                         ├─  LOGS/  # automatically created
@@ -207,7 +210,7 @@ then
         ${INPUT_BAM} \
         ${RSEM_REF_DIR}/${REF_NAME} \
         ${OUTPUT_EACH_DIR}/${NUM}
-elsif [ $ISPAIREDREAD -eq 1 ]
+elif [ $ISPAIREDREAD -eq 1 ]
 then
     ${TOOL_RSEM_CALC_EXPR} \
         --alignments \
