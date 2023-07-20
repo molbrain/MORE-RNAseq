@@ -24,7 +24,9 @@ This is the MORE-RNAseq pipeline, a series of scripts analyzing RNA sequencing o
 
 ## Recommended pipeline
 
-Run the exec scripts **`Exec_MORE-RNAseq_01.zsh`** and **`Exec_MORE-RNAseq_02.zsh`**, then use the R scripts (020_...R.txt).
+First, put your fastq data of RNA-seq in the `Rawdata` directory.
+And put also the reference genome data in the `Reference/Original` directory.
+Next run the exec scripts **`Exec_MORE-RNAseq_01.zsh`** and **`Exec_MORE-RNAseq_02.zsh`**, then use the R scripts (020_...R.txt).
 If you have already trimmed fastq files, maybe `Exec_MORE-RNAseq_01.zsh` is not needed.
 
 ### Require tools for this pipeline
