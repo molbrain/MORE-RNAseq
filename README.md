@@ -7,28 +7,28 @@ This is the MORE-RNAseq pipeline, a series of scripts analyzing RNA sequencing o
 
 ## Outline of workflow
 
-1. Pre-preparation (as you like)
-    1. Quality check, trimming adapter, removing low-quality bases, and so on.
-1. Mapping and counting
-    1. Prepare the references with GTF data of [MORE reference](https://github.com/molbrain/MORE-reference)
+1. **Pre-preparation (as you like): `Exec_MORE-RNAseq_01.zsh` (or, perform each scripts from 000.zsh to 008.zsh)**
+    1. Quality check of raw fastq data
+    1. trimming adapter sequences and removing low-quality bases
+    1. Quality check after trimming
+1. **Mapping and counting: `Exec_MORE-RNAseq_02.zsh` ( 009.zsh to 019.zsh)**
+    1. Prepare the references with GTF data of **[MORE reference](https://github.com/molbrain/MORE-reference)**
     1. Mapping with prepared reference
     1. Calculate the expression of L1 transposons and genes
     1. Create the read-count/TPM data matrix
-1. Summarize the L1 expression and visualization
-1. Detection of Differentially Expressed L1s/Genes and Visualization
-
+1. **Detection of Differentially Expressed L1s/Genes and Visualization (as you like): Example R scripts (020_001.R.txt to 020_004.R.txt)**
+    1. Data loading from `019.zsh` data
+    1. PCA plot of samples
+    1. Box plot of the total L1 expression
+    1. Volcano plot of the individual L1 expression
 
 ## Recommended pipeline
 
-### Environment of developing this pipeline
-
-- CentOS7 (release XXX)
-- zsh (ver.XXX)
-- Perl (ver.XXX)
-- R (ver.XXX)
-
 ### Require tools for this pipeline
 
+- zsh
+- Java
+- Perl
 - [FastQC]()
 - [ea-utils](): for fastq-stats
 - [Cutadapt]()
@@ -37,6 +37,13 @@ This is the MORE-RNAseq pipeline, a series of scripts analyzing RNA sequencing o
 - [R](https://www.r-project.org) and [Bioconductor](https://www.bioconductor.org) ([edgeR](https://bioconductor.org/packages/release/bioc/html/edgeR.html))
 - [STAR](https://github.com/alexdobin/STAR/)
 - [RSEM](http://deweylab.github.io/RSEM/)
+
+### Environment of developing this pipeline
+
+- CentOS7 (release XXX)
+- zsh (ver.XXX)
+- Perl (ver.XXX)
+- R (ver.XXX)
 
 ### Usage
 
@@ -65,8 +72,8 @@ Please copy all scripts in the your same working directory as the below image.
                         ├─  Exec_MORE-RNAseq_01.zsh  # provided
                         ├─  Exec_MORE-RNAseq_02.zsh  # provided
                         │
-                        ├─  MORE-RNAseq/    ─┬─ ...  # provided
-                        │                    ├─ ...
+                        ├─  MORE-RNAseq/    ─┬─ 000.zsh  # provided
+                        │                    ├─ 001.zsh  # provided
                         │                    ├─ ...
                                              ├─  MORE-reference/ ─┬─ ...  # provided
                         │                                         ├─ ...
@@ -87,33 +94,46 @@ The information on the parts which should be modified and the other points to ta
 The workflow is the typical usage for MORE-RNAseq, so of course you can modify the pipeline and exchange the tools as you like.
 
 
-After creating the directory `Reference` and the subdirectory `Original`, Prepare the reference file in `./Reference/Original` by download.
+After creating the directory `Reference` and the subdirectory `Original`, Prepare the reference file in **`./Reference/Original`** by download.
+
+All data of Ensembl release 102 (which version used in this pipeline) are available from the URL below.
+http://nov2020.archive.ensembl.org/index.html
+
+**The reference genome DNA files (FASTA format) and the GTF files** in Ensembl release 102 are available in the below.
+http://nov2020.archive.ensembl.org/info/data/ftp/index.html
+
 For example, like the below command.
 ```
 ## Load the GENOME, SPECIES, CAP_SPECIES, and ENSRELEASE
 ## or set the variables directory, like as GENOME, SPECIES, CAP_SPECIES, and ENSRELEASE
 source 00000setup.zsh
 
-## Download the references (fasta and gtf) from Ensembl directly
+## Download the references (FASTA and GTF) from Ensembl directly
 wget \
     --directory-prefix=./Reference/Original \
     ftp://ftp.ensembl.org/pub/release-${ENSRELEASE}/fasta/${SPECIES}/dna/${CAP_SPECIES}.${GENOME}.dna.primary_assembly.fa.gz \
     ftp://ftp.ensembl.org/pub/release-${ENSRELEASE}/gtf/${SPECIES}/${CAP_SPECIES}.${GENOME}.${ENSRELEASE}.gtf.gz
 ```
 
+Especially, **`"mart_export.GRCm38.102.txt.gz"`** or **`"mart_export.GRCh38.102.txt.gz"`** (used in `019.zsh`) are available from the [BioMart on Ensembl 102](http://nov2020.archive.ensembl.org/biomart/martview). The data of `"Gene stable ID"`, `"Gene name"`, `"Chromosome/scaffold name"`, `"Strand"`, `"Gene start (bp)"`, `"Gene end (bp)"`, `"Gene description"`, and `"Gene type"` columns in `Attribute` section are required for output `Results` as those `"mart_export....txt.gz"` files, with the order of columns above. And Export format is `TSV` and `"Compressed file (.gz)"` with checking `"Unique results only"`.
+If you want, Filtering by `"Transcript support level (TSL)"` and/or `"Gene Type"` are of course OK.
+
+If you need, you can use the other release (of course the latest one).
+
+
 ### Note
 
 When you use this pipeline of MORE-RNAseq, you have to take care of some parts in scripts as follows:
 
-1. In all of the scripts, the path information of each tool and directory is referred from the `00000setup.zsh` file.
+1. In all of the scripts, the path information of each tool and directory is referred from the **`00000setup.zsh`** file.
 1. In the STAR mapping step (`010_STAR_mapping.zsh`), some options of STAR are not the default.
 1. In the case that RSEM is not available because you are not the admin and cannot install the new libraries to your system, please use local::lib, miniconda/anaconda, Docker, etc.
 
 
 #### Note 1. PATH and VARIABLE information
 
-In all of the scripts, the path information of each tool and directory is referred from the `00000setup.zsh` file.
-You should write the precise PATH for all tools in the `00000setup.zsh` file like the example below.
+In all of the scripts, the path information of each tool and directory is referred from the **`00000setup.zsh`** file.
+You should write the precise PATH for all tools in the **`00000setup.zsh`** file like the example below.
 ```zsh
     TOOL_STAR=/usr/local/STAR-2.6.0c/bin/Linux_x86_64_static/STAR
 ```
@@ -121,8 +141,8 @@ When you already have the tools in your $PATH (for example, the `which STAR` com
 ```zsh
     TOOL_STAR=STAR
 ```
-Like PATH information, the other variables in the `00000setup.zsh` file need to modify for your environment like the example below.
-Especially the variable of `GENOME` in the `00000setup.zsh`, is empty as below.
+Like PATH information, the other variables in the **`00000setup.zsh`** file need to modify for your environment like the example below.
+Especially the variable of `GENOME` in the **`00000setup.zsh`**, is empty as below.
 ```zsh
     GENOME=
 ```
@@ -158,16 +178,16 @@ In `010_STAR_mapping.zsh`, the STAR setting is here.
 	--outFileNamePrefix ${OUTPUT_EACH_DIR}/ \
 	--outSAMmultNmax -1 \
 	--outSAMprimaryFlag AllBestScore \
-	--outFilterMultimapNmax 10000
+	--outFilterMultimapNmax 100000
 ```
 The last two options `--outFilterMultimapNmax` and `--outSAMprimaryFlag` of the above STAR command are not the same as the default usages of STAR.
-The value of `--outFilterMultimapNmax` above example is defined as 10000 for the MORE-RNAseq pipeline.
+The value of `--outFilterMultimapNmax` above example is defined as 100000 for the MORE-RNAseq pipeline.
 (The default original values of STAR are `OneBestScore` and `50`, respectively.)
-The much greater value of `--outFilterMultimapNmax` like 100000 is also OK.
+The much greater value of `--outFilterMultimapNmax` is also OK if available.
 If you need, additional options like `--winAnchorMultimapNmax`, `--bamRemoveDuplicatesType`, etc are available.
 Please modify the scripts for your analysis purposes and proper calculations.
 
-If your RNA-seq data is single-end, you should modify to the below setting in `00000setup.zsh`. (Default is `ISPAIREDREAD=2` ; paired-end)
+If your RNA-seq data is single-end, you should modify to the below setting in **`00000setup.zsh`**. (Default is `ISPAIREDREAD=2` ; paired-end)
 ```zsh
 ISPAIREDREAD=1
 ```
@@ -200,14 +220,14 @@ then
 fi
 ```
 
-If your RNA-seq data is single-end, you should modify to the below setting in `00000setup.zsh`. (Default is `ISPAIREDREAD=2` ; paired-end)
+If your RNA-seq data is single-end, you should modify to the below setting in **`00000setup.zsh`**. (Default is `ISPAIREDREAD=2` ; paired-end)
 ```zsh
 ISPAIREDREAD=1
 ```
 With the settings above, `--paired-end` option will not be used.
 
-Additionally, your RNA-seq data was prepared by the 'stranded' library protocol, please modify the below setting in `00000setup.zsh`.
-RSEM default is `--strandedness none`, and MORE-RNAseq pipeline (this example) is also set `STRANDEDNESS=none` in `00000setup.zsh`.
+Additionally, your RNA-seq data was prepared by the 'stranded' library protocol, please modify the below setting in **`00000setup.zsh`**.
+RSEM default is `--strandedness none`, and MORE-RNAseq pipeline (this example) is also set `STRANDEDNESS=none` in **`00000setup.zsh`**.
 For Illumina TruSeq Stranded protocols, should use 'reverse'. 
 ```zsh
 STRANDEDNESS=reverse
