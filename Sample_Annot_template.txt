@@ -1,3 +1,7 @@
-Data	Sample	Dataset	Feature1	Feature2	Feature3
-Sample_001	CB6N_P1	TR-0001	Treat	E16	102.1
-Sample_002	CB6N_P2	TR-0001	Control	E16	80.3
+Data	Sample	Dataset	Feature1	Feature2
+Sample_001	CB6_A	TR-0001	Control	8w
+Sample_002	CB6_B	TR-0001	Control	8w
+Sample_003	CB6_C	TR-0001	Control	9w
+Sample_006	CB6_D	TR-0001	Treat	8w
+Sample_007	CB6_E	TR-0001	Treat	8w
+Sample_008	CB6_F	TR-0001	Treat	9w
