@@ -5,6 +5,7 @@ data.Annot$Dataset
 data.Annot$Feature1
 
 DATASET <- "TR-0001"
+
 dataMatrix <- as.matrix(log(TPM+1,2)[                           ,which(data.Annot$Dataset==DATASET)])
 #dataMatrix <- as.matrix(log(TPM+1,2)[grep("^L1",  rownames(TPM)),which(data.Annot$Dataset==DATASET)])
 #dataMatrix <- as.matrix(log(TPM+1,2)[grep("^ENS", rownames(TPM)),which(data.Annot$Dataset==DATASET)])

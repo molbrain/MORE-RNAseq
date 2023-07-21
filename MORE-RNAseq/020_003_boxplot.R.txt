@@ -3,6 +3,8 @@
 
 #library(exactRankTests)
 
+DATASET <- "TR-0001"
+
 illust_Box <- function(INPUTL1,INPUTNAME,Treatset,Controlset) {
 	if(length(Controlset)>1){Controldata <- colSums(TPM[INPUTL1,Controlset])}else{Controldata <- sum(TPM[INPUTL1,Controlset])}
 	if(length(Treatset)>1){Treatdata <- colSums(TPM[INPUTL1,Treatset])}else{Treatdata <- sum(TPM[INPUTL1,Treatset])}
@@ -36,10 +38,11 @@ illust_Box <- function(INPUTL1,INPUTNAME,Treatset,Controlset) {
 }
 
 
+Controlset <- intersect(which(data.Annot$Dataset==DATASET),which(data.Annot$Feature1=="Control"))
+Treatset   <- intersect(which(data.Annot$Dataset==DATASET),which(data.Annot$Feature1=="Treat"))
+
 PLOTL1<-grep("^L1fli",rownames(COUNT))
 PLOTNAME<-"whole L1"
-Controlset <- intersect(which(data.Annot$Dataset=="TR-0001"),which(data.Annot$Feature1=="Control"))
-Treatset   <- intersect(which(data.Annot$Dataset=="TR-0001"),which(data.Annot$Feature1=="Treat"))
 pdf(paste0("boxplot_",PLOTNAME,".pdf"))
 illust_Box(PLOTL1,PLOTNAME,Treatset,Controlset)
 dev.off()

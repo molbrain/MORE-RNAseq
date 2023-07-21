@@ -6,10 +6,12 @@ library(genefilter)
 library(org.Mm.eg.db)
 #library(org.hg.eg.db)
 
-Controlset <- intersect(which(data.Annot$Dataset=="Dataset1"),which(data.Annot$Feature1=="Control"))
-Treatset   <- intersect(which(data.Annot$Dataset=="Dataset1"),which(data.Annot$Feature1=="Treat"))
+DATASET <- "TR-0001"
 
-useSample <- rownames(data.Annot)[which(data.Annot$Dataset=="Dataset1")]
+Controlset <- intersect(which(data.Annot$Dataset==DATASET),which(data.Annot$Feature1=="Control"))
+Treatset   <- intersect(which(data.Annot$Dataset==DATASET),which(data.Annot$Feature1=="Treat"))
+
+useSample <- rownames(data.Annot)[which(data.Annot$Dataset==DATASET)]
 useAnnot <- data.Annot[useSample,]
 
 #useTPM <- TPM[,useSample]
@@ -21,14 +23,22 @@ useCOUNT <- COUNT[grep("^L1",rownames(TPM)),useSample]
 #useTPM <- TPM[grep("^ENS",rownames(TPM)),useSample]
 #useCOUNT <- COUNT[grep("^ENS",rownames(TPM)),useSample]
 
-
-useMean.logTPM.Control <-rowMeans(log(useTPM[,rownames(data.Annot)[Controlset]] +1,2))
-useMean.logTPM.Treat <-rowMeans(log(useTPM[,rownames(data.Annot)[Treatset]] +1,2))
+if(length(Controlset)>1){
+	useMean.logTPM.Control <-rowMeans(log(useTPM[,rownames(data.Annot)[Controlset]] +1,2))
+}else{
+	useMean.logTPM.Control <-log(useTPM[,rownames(data.Annot)[Controlset]] +1,2)
+}
+if(length(Treatset)>1){
+	useMean.logTPM.Treat <-rowMeans(log(useTPM[,rownames(data.Annot)[Treatset]] +1,2))
+}else{
+	useMean.logTPM.Treat <-log(useTPM[,rownames(data.Annot)[Treatset]] +1,2)
+}
 
 GROUP <- useAnnot$Feature1
 
 #################################
 
+if(length(Controlset) >1 && length(Treatset) >1){
 
 design <- model.matrix(~0+GROUP)
 colnames(design) <- sub("GROUP","",colnames(design))
@@ -97,4 +107,27 @@ points(Diff.mean.logTPM[hits],-1*log(qltop[hits,EDGER_STAT],10),pch=16,col="red"
 text(Diff.mean.logTPM[hits],-1*log(qltop[hits,EDGER_STAT],10),labels=paste(GeneDesc[hits,"Symbol"],sub("L1-fli-","",GeneDesc[hits,"Type"])),col="red",cex=.5,adj=c(-.2,NA))
 dev.off()
 
-write.table(data.frame(Id=hits,Diff.mean.logTPM=Diff.mean.logTPM[hits],pValue=qltop[hits,"PValue"],FDR=qltop[hits,"FDR"],GeneDesc[hits,],TPM[hits,]),"hits.txt",sep="\t",eol="\n",col.names=TRUE,quot=FALSE,)
+write.table(data.frame(Id=hits,Diff.mean.logTPM=Diff.mean.logTPM[hits],pValue=qltop[hits,"PValue"],FDR=qltop[hits,"FDR"],GeneDesc[hits,],TPM[hits,]),"hits.txt",sep="\t",eol="\n",col.names=TRUE,quot=FALSE)
+
+} else {
+
+	mean.logTPM.Control <- useMean.logTPM.Control
+	mean.logTPM.Treat <- useMean.logTPM.Treat
+	Diff.mean.logTPM <- mean.logTPM.Treat - mean.logTPM.Control
+	
+	minus3sd <- mean(Diff.mean.logTPM)- (3*sd(Diff.mean.logTPM))
+	plus3sd <- mean(Diff.mean.logTPM)+ (3*sd(Diff.mean.logTPM))
+	hits <- names(Diff.mean.logTPM)[union(which(Diff.mean.logTPM > plus3sd),which(Diff.mean.logTPM < minus3sd))]
+
+	write.table(
+		data.frame(
+		  Id=hits,
+		  Diff.mean.logTPM=Diff.mean.logTPM[hits],
+		  pValue=rep("NA",length(hits)),
+		  FDR=rep("NA",length(hits)),
+		  GeneDesc[hits,],TPM[hits,]
+		),
+		"hits.txt",sep="\t",eol="\n",col.names=TRUE,quot=FALSE
+	)
+
+}
