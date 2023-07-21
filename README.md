@@ -246,11 +246,11 @@ In some cases, RSEM is not available in your system, because you are not the adm
 If that is, please use `local::lib` or miniconda/anaconda for the installation to your home directories, or use Docker/Singularity, etc.
 
 
-#### Note 5. No need the trimming step
+#### Note 5. No need for the trimming step
 
-If your FASTQ files already trimmed, you can skip the `Exec_MORE-RNAseq_01.zsh` step and directly can do the `Exec_MORE-RNAseq_02.zsh`. In this case, you should create the `TEMP/TRIMMOMATIC` and `Results` directories by yourself, and put your **RENAMED** FASTQ files like below in the `TEMP/TRIMMOMATIC` directory. And also you should prepare the `Results/list_dataName.txt` file in the `Result` directory, like below.
+If your FASTQ files are already trimmed, you can skip the `Exec_MORE-RNAseq_01.zsh` step and directly can do the `Exec_MORE-RNAseq_02.zsh`. In this case, you should create the `TEMP/TRIMMOMATIC` and `Results` directories by yourself, and put your **RENAMED** FASTQ files like below in the `TEMP/TRIMMOMATIC` directory. And also you should prepare the `Results/list_dataName.txt` file in the `Result` directory, like below.
 
-If your FASTQ files which already trimmed are :
+If your FASTQ files which already been trimmed are :
 ```txt
 foo01_R1.fastq.gz
 foo01_R2.fastq.gz
@@ -262,16 +262,17 @@ bar02_R1.fastq.gz
 bar02_R2.fastq.gz
 ```
 
-RENAMEED files the `TEMP/TRIMMOMATIC` directory should be :
+RENAMEED files in the `TEMP/TRIMMOMATIC` directory should be :
+(The filenames are added "trimmed_" prefixes, and altered "fastq" to "fq")
 ```txt
-trimmed_foo01_R1.fastq.gz
-trimmed_foo01_R2.fastq.gz
-trimmed_foo02_R1.fastq.gz
-trimmed_foo02_R2.fastq.gz
-trimmed_bar01_R1.fastq.gz
-trimmed_bar01_R2.fastq.gz
-trimmed_bar02_R1.fastq.gz
-trimmed_bar02_R2.fastq.gz
+trimmed_foo01_R1.fq.gz
+trimmed_foo01_R2.fq.gz
+trimmed_foo02_R1.fq.gz
+trimmed_foo02_R2.fq.gz
+trimmed_bar01_R1.fq.gz
+trimmed_bar01_R2.fq.gz
+trimmed_bar02_R1.fq.gz
+trimmed_bar02_R2.fq.gz
 ```
 
 
