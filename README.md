@@ -7,7 +7,7 @@ This is the MORE-RNAseq pipeline, a series of scripts analyzing RNA sequencing o
 
 ## Outline of workflow
 
-1. **Pre-preparation (as you like): `Exec_MORE-RNAseq_01.zsh` (or, perform each scripts from 000.zsh to 008.zsh)**
+1. **Pre-preparation (as you like): `Exec_MORE-RNAseq_01.zsh` (or, perform each script from 000.zsh to 008.zsh)**
     1. Quality check of raw fastq data
     1. trimming adapter sequences and removing low-quality bases
     1. Quality check after trimming
@@ -17,17 +17,17 @@ This is the MORE-RNAseq pipeline, a series of scripts analyzing RNA sequencing o
     1. Calculate the expression of L1 transposons and genes
     1. Create the read-count/TPM data matrix
 1. **Detection of Differentially Expressed L1s/Genes and Visualization (as you like): Example R scripts (020_001.R.txt to 020_004.R.txt)**
-    1. Data loading from `019.zsh` data
-    1. PCA plot of samples
-    1. Box plot of the total L1 expression
-    1. Volcano plot of the individual L1 expression
+    1. Data loading from `019.zsh` data (020_001)
+    1. PCA plot of samples (020_002)
+    1. Box plot of the total L1 expression (020_003)
+    1. Volcano plot of the individual L1 expression (020_00)
 
 ## Recommended pipeline
 
 First, put your fastq data of RNA-seq in the `Rawdata` directory.
 And put also the reference genome data in the `Reference/Original` directory.
-Next run the exec scripts **`Exec_MORE-RNAseq_01.zsh`** and **`Exec_MORE-RNAseq_02.zsh`**, then use the R scripts (020_...R.txt).
-If you have already trimmed fastq files, maybe `Exec_MORE-RNAseq_01.zsh` is not needed.
+Next run the exec scripts **`Exec_MORE-RNAseq_01.zsh`** and **`Exec_MORE-RNAseq_02.zsh`**, then use the R scripts (020_...R.txt) with `Sample_Annot.txt`.
+If you have already trimmed fastq files, maybe the step of `Exec_MORE-RNAseq_01.zsh` is not needed (Please see the below note session).
 
 ### Require tools for this pipeline
 
@@ -52,9 +52,9 @@ If you have already trimmed fastq files, maybe `Exec_MORE-RNAseq_01.zsh` is not 
 
 ### Usage
 
-The typical uage for MORE-RNAseq for the bulk pair-end RNA-seq data.
+The typical usage for MORE-RNAseq for the bulk pair-end RNA-seq data.
 
-Please copy all scripts in the your same working directory as the below image.
+Please copy all scripts in the same working directory as the below image.
 ```
 **(Working directory)/ ─┬─ **Rawdata/ ───┬─ **Sample_001_R1.fastq.gz
                         │                ├─ **Sample_001_R2.fastq.gz
@@ -98,13 +98,12 @@ The information on the parts which should be modified and the other points to ta
 
 The workflow is the typical usage for MORE-RNAseq, so of course you can modify the pipeline and exchange the tools as you like.
 
-
 After creating the directory `Reference` and the subdirectory `Original`, Prepare the reference file in **`./Reference/Original`** by download.
 
 All data of Ensembl release 102 (which version used in this pipeline) are available from the URL below.
 http://nov2020.archive.ensembl.org/index.html
 
-**The reference genome DNA files (FASTA format) and the GTF files** in Ensembl release 102 are available in the below.
+**The reference genome DNA files (FASTA format) and the GTF files** in Ensembl release 102 are available below.
 http://nov2020.archive.ensembl.org/info/data/ftp/index.html
 
 For example, like the below command.
@@ -121,9 +120,11 @@ wget \
 ```
 
 Especially, **`"mart_export.GRCm38.102.txt.gz"`** or **`"mart_export.GRCh38.102.txt.gz"`** (used in `019.zsh`) are available from the [BioMart on Ensembl 102](http://nov2020.archive.ensembl.org/biomart/martview). The data of `"Gene stable ID"`, `"Gene name"`, `"Chromosome/scaffold name"`, `"Strand"`, `"Gene start (bp)"`, `"Gene end (bp)"`, `"Gene description"`, and `"Gene type"` columns in `Attribute` section are required for output `Results` as those `"mart_export....txt.gz"` files, with the order of columns above. And Export format is `TSV` and `"Compressed file (.gz)"` with checking `"Unique results only"`.
-If you want, Filtering by `"Transcript support level (TSL)"` and/or `"Gene Type"` are of course OK.
+If you want, Filtering by `"Transcript support level (TSL)"` and/or `"Gene Type"` is of course OK.
 
 If you need, you can use the other release (of course the latest one).
+
+Additionally, when you use the R-scripts example in this pipeline, please prepare `Sample_Annot.txt`. This file is in TSV (tab-delimiter text) format and you can edit `Sample_Annot_template.txt` by using Excel and so on.
 
 
 ### Note
@@ -199,7 +200,7 @@ ISPAIREDREAD=1
 
 #### Note 3. RSEM options
 
-In `013_rsem_calc_expr.zsh`, the RSEM (rsem_calclation-expression) setting is here.
+In the `013_rsem_calc_expr.zsh`, the RSEM (rsem_calclation-expression) setting is here.
 ```zsh
 if [ $ISPAIREDREAD -eq 2 ]
 then
@@ -232,7 +233,7 @@ ISPAIREDREAD=1
 With the settings above, `--paired-end` option will not be used.
 
 Additionally, your RNA-seq data was prepared by the 'stranded' library protocol, please modify the below setting in **`00000setup.zsh`**.
-RSEM default is `--strandedness none`, and MORE-RNAseq pipeline (this example) is also set `STRANDEDNESS=none` in **`00000setup.zsh`**.
+RSEM default is `--strandedness none`, and the MORE-RNAseq pipeline (this example) is also set `STRANDEDNESS=none` in **`00000setup.zsh`**.
 For Illumina TruSeq Stranded protocols, should use 'reverse'. 
 ```zsh
 STRANDEDNESS=reverse
