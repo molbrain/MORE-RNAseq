@@ -40,7 +40,7 @@ do
     echo -n "# Start RSEM gen-data-matrix with ${CATEGORY}.results "
     date
     
-    ls ./${OUTPUT_RSEM_DIR}/RSEM_*.${CATEGORY}.results \
+    ls ./${OUTPUT_RSEM_DIR}/RSEM_*/*.${CATEGORY}.results \
        > ./${OUTPUT_RSEM_DIR}/list_RSEM_${CATEGORY}_results_files.txt
     
     ${TOOL_RSEM_GEN_DATA_MTX} \

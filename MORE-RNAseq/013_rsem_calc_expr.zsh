@@ -78,7 +78,7 @@ do
 		--append-names \
 		./${INPUT_BAM} \
 		./${STAR_RSEM_REF_DIR}/${REF_NAME} \
-		./${OUTPUT_EACH_DIR}
+		./${OUTPUT_EACH_DIR}/${SAMPLE}
 		
 		# If you need, another options are OK
 		# e.g. --estimate-rspd, etc
@@ -96,7 +96,7 @@ do
 		--append-names \
 		./${INPUT_BAM} \
 		./${STAR_RSEM_REF_DIR}/${REF_NAME} \
-		./${OUTPUT_EACH_DIR}
+		./${OUTPUT_EACH_DIR}/${SAMPLE}
 		
 	   # If you need, another options are OK
 	   # e.g. --estimate-rspd, etc

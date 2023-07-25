@@ -1,6 +1,5 @@
 #!/bin/zsh
 
-
 ##################################
 ## Generate readPerGene matrix
 ##################################
@@ -8,14 +7,10 @@
 echo -n "## START : $0 "
 date
 
-
-echo -n "## START : $0 "
-date
-
 if [ -f ./00000setup.zsh ]
 then
     echo "## ./00000setup.zsh : exist"
-    source 00000setup.zsh
+    source ./00000setup.zsh
 else
     echo "## not ./00000setup.zsh"
     echo -n "## Abort $0 : "
@@ -25,7 +20,17 @@ fi
 
 #############################
 
+#OUTPUT_STAR_DIR=./TEMP/STAR
+#OUTPUT_RSEM_DIR=./TEMP/RSEM
+#TOOL_RSEM_PREP_REF=rsem-prepare-reference
+#TOOL_RSEM_GEN_DATA_MTX=rsem-generate-data-matrix
+#TOOL_RSEM_CALC_EXPR=rsem-calculate-expression
+#STAR_RSEM_REF_DIR=Reference
+#REF_NAME=GRCm38.102
+
 echo "## OUTPUT_STAR_DIR : ./${OUTPUT_STAR_DIR}"
+
+#DATA_LIST_FILE=${RESULT_DIR}/list_dataName.txt
 
 #############################
 

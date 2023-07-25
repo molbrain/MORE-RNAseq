@@ -7,10 +7,6 @@
 echo -n "## START : $0 "
 date
 
-
-echo -n "## START : $0 "
-date
-
 if [ -f ./00000setup.zsh ]
 then
     echo "## ./00000setup.zsh : exist"
@@ -34,6 +30,7 @@ fi
 
 echo "## OUTPUT_RSEM_DIR : ./${OUTPUT_RSEM_DIR}"
 
+#DATA_LIST_FILE=${RESULT_DIR}/list_dataName.txt
 
 #############################
 
@@ -43,7 +40,14 @@ do
     for DATA in 6 7
     do
 	DATA_LIST_FILE=${OUTPUT_RSEM_DIR}/list_RSEM_${CATEGORY}_results_files.txt
-	ls -Fal ./${DATA_LIST_FILE}
+	if [ -e ${DATA_LIST_FILE} ]
+	then
+	   ls -Fal ./${DATA_LIST_FILE}
+	else
+	   echo "## NO FILE : ./${DATA_LIST_FILE} "
+	   exit 0
+	fi
+	
 	echo "## ${CATEGORY} column ${DATA} (6:TPM, 7:FPKM) -> each matrix "
 	
 	if [ -e ./${TEMP_DIR}/temp_017_each ]
@@ -100,7 +104,7 @@ do
     mv ./${OUTPUT_RSEM_DIR}/RSEM.${CATEGORY}.7.matrix.tsv.txt \
        ./${RESULT_DIR}/RSEM.${CATEGORY}.FPKM.matrix.tsv.txt
     
-    ls -Fal ../${RESULT_DIR}/RSEM.${CATEGORY}.*M.matrix.tsv.txt
+    ls -Fal ./${RESULT_DIR}/RSEM.${CATEGORY}.*M.matrix.tsv.txt
 done
 
 #############################
