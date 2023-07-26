@@ -16,11 +16,13 @@ This is the MORE-RNAseq pipeline, a series of scripts analyzing RNA sequencing o
     1. Mapping with prepared reference
     1. Calculate the expression of L1 transposons and genes
     1. Create the read-count/TPM data matrix
-1. **Detection of Differentially Expressed L1s/Genes and Visualization (as you like): Example R scripts (020_001.R.txt to 020_004.R.txt)**
+    1. Option: you can get the stats date of each bam file from STAR/RSEM or STAR output logs
+1. **Detection of Differentially Expressed L1s/Genes and Visualization (as you like): Example R scripts (020_001.R.txt to 020_005.R.txt)**
     1. Data loading from `019.zsh` data (020_001)
     1. PCA plot of samples (020_002)
     1. Box plot of the total L1 expression (020_003)
-    1. Volcano plot of the individual L1 expression (020_00)
+    1. Volcano plot of the individual L1 expression (020_004)
+    1. Box plot of the total L1 expression (intergenic and intragenic; 020_005) 
 
 ## Recommended pipeline
 
@@ -232,9 +234,9 @@ ISPAIREDREAD=1
 ```
 With the settings above, `--paired-end` option will not be used.
 
-Additionally, your RNA-seq data was prepared by the 'stranded' library protocol, please modify the below setting in **`00000setup.zsh`**.
+Additionally, when your RNA-seq data was prepared by the 'stranded' library protocol, please modify the below setting in **`00000setup.zsh`**.
 RSEM default is `--strandedness none`, and the MORE-RNAseq pipeline (this example) is also set `STRANDEDNESS=none` in **`00000setup.zsh`**.
-For Illumina TruSeq Stranded protocols, should use 'reverse'. 
+For Illumina TruSeq Stranded protocols, you should use 'reverse'. 
 ```zsh
 STRANDEDNESS=reverse
 ```
@@ -283,3 +285,9 @@ foo02
 bar01
 bar02
 ```
+
+#### Note 6. STAR `readPerGenes` count data
+
+The `readPerGenes` count data output directly from STAR is also available using the script `018.zsh`.
+You can use the data instead of the RSEM `expected_count` data.
+
