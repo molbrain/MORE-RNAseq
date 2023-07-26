@@ -1,0 +1,132 @@
+## R scirpt
+## 020_003_boxPlot.R.txt
+
+#library(exactRankTests)
+
+DATASET <- "TR-0001"
+
+tempINTINT<-read.csv("./MORE-RNAseq/MORE-reference/LIST_MOUSE_INTER_INTRA_GENE.csv",row.names=1,header=FALSE)
+temptempINTINT <- data.frame(INTINT=tempINTINT[,1],row.names=rownames(tempINTINT))
+INTER_INTRA <- rep(NA,nrow(GeneDesc))
+names(INTER_INTRA)<-rownames(GeneDesc)
+INTER_INTRA[rownames(temptempINTINT)] <- temptempINTINT[,1]
+#rownames(INTER_INTRA)!=rownames(GeneDesc)
+#logical(0)
+
+illust_InterIntraBox <- function(INPUTL1,INPUTNAME,Treatset,Controlset) {
+	
+	if(length(Controlset)>1){
+		if(length(intersect(INPUTL1,which(INTER_INTRA=="intergenic")))>1){
+			ControlINTERdata <- colSums(TPM[intersect(INPUTL1,which(INTER_INTRA=="intergenic")),Controlset])
+		}else{
+			ControlINTERdata <- TPM[intersect(INPUTL1,which(INTER_INTRA=="intergenic")),Controlset]
+		}
+		if(length(intersect(INPUTL1,which(INTER_INTRA=="INTRAGENIC")))>1){
+			ControlINTRAdata <- colSums(TPM[intersect(INPUTL1,which(INTER_INTRA=="INTRAGENIC")),Controlset])
+		}else{
+			ControlINTRAdata <- TPM[intersect(INPUTL1,which(INTER_INTRA=="INTRAGENIC")),Controlset]
+		}
+	}else{
+		ControlINTERdata <- sum(TPM[intersect(INPUTL1,which(INTER_INTRA=="intergenic")),Controlset])
+		ControlINTRAdata <- sum(TPM[intersect(INPUTL1,which(INTER_INTRA=="INTRAGENIC")),Controlset])
+	}
+	if(length(Treatset)>1){
+		if(length(intersect(INPUTL1,which(INTER_INTRA=="intergenic")))>1){
+			TreatINTERdata <- colSums(TPM[intersect(INPUTL1,which(INTER_INTRA=="intergenic")),Treatset])
+		}else{
+			TreatINTERdata <- TPM[intersect(INPUTL1,which(INTER_INTRA=="intergenic")),Treatset]
+		}
+		if(length(intersect(INPUTL1,which(INTER_INTRA=="INTRAGENIC")))>1){
+			TreatINTRAdata <- colSums(TPM[intersect(INPUTL1,which(INTER_INTRA=="INTRAGENIC")),Treatset])
+		}else{
+			TreatINTRAdata <- TPM[intersect(INPUTL1,which(INTER_INTRA=="INTRAGENIC")),Treatset]
+		}
+	}else{
+		TreatINTERdata <- sum(TPM[intersect(INPUTL1,which(INTER_INTRA=="intergenic")),Treatset])
+		TreatINTRAdata <- sum(TPM[intersect(INPUTL1,which(INTER_INTRA=="INTRAGENIC")),Treatset])
+	}
+	#if(length(Controlset)>2 && length(Treatset)>2) {
+	#	#WILCOX <- wilcox.exact(x=Controldata,y=Treatdata,paired=F)
+	#	#PVAL <- WILCOX$p.value
+	#	#TESTNAME<-"wilcox"
+	#	STUDT <- t.test(x=Controldata,y=Treatdata,paired=F)
+	#	PVAL <- STUDT$p.value
+	#	TESTNAME<-"t.test"
+	#} else {
+	#	PVAL <- "NA"
+	#	TESTNAME<-"low sample number"
+	#}
+	BOX <- boxplot(list(
+			Control.inter=ControlINTERdata,
+			Control.INTRA=ControlINTRAdata,
+			Treat.inter=TreatINTERdata,
+			Treat.INTRA=TreatINTRAdata
+		),
+		main=paste0(INPUTNAME," Expression (intergenic;INTRAGENIC)"),
+		ylab="Total expression lebel (TPM)",
+		sub=paste0(length(INPUTL1)," of ",INPUTNAME),
+		col=c(rep("lightgrey",2),rep("pink",2)),
+		las=1
+	)
+	points(jitter(rep(1,length(Controlset))),ControlINTERdata,col="black")
+	points(jitter(rep(2,length(Controlset))),ControlINTRAdata,col="black")
+	points(jitter(rep(3,length(Treatset))),TreatINTERdata,col="red")
+	points(jitter(rep(4,length(Treatset))),TreatINTRAdata,col="red")
+	Lab.1 <- paste(data.Annot[colnames(TPM)[Controlset],"Sample"],data.Annot[colnames(TPM)[Controlset],"Feature1"])
+	Lab.2 <- paste(data.Annot[colnames(TPM)[Controlset],"Sample"],data.Annot[colnames(TPM)[Controlset],"Feature1"])
+	Lab.3 <- paste(data.Annot[colnames(TPM)[Treatset],"Sample"],data.Annot[colnames(TPM)[Treatset],"Feature1"])
+	Lab.4 <- paste(data.Annot[colnames(TPM)[Treatset],"Sample"],data.Annot[colnames(TPM)[Treatset],"Feature1"])
+	text(rep(1,length(Controlset)),ControlINTERdata,labels=Lab.1,cex=.5,adj=c(-0.5,NA),col="black")
+	text(rep(2,length(Controlset)),ControlINTRAdata,labels=Lab.2,cex=.5,adj=c(-0.5,NA),col="black")
+	text(rep(3,length(Treatset)),TreatINTERdata,labels=Lab.3,cex=.5,adj=c(-0.5,NA),col="red")
+	text(rep(4,length(Treatset)),TreatINTRAdata,labels=Lab.4,cex=.5,adj=c(-0.5,NA),col="red")
+}
+
+
+Controlset <- intersect(which(data.Annot$Dataset==DATASET),which(data.Annot$Feature1=="Control"))
+Treatset   <- intersect(which(data.Annot$Dataset==DATASET),which(data.Annot$Feature1=="Treat"))
+
+PLOTL1<-grep("^L1fli",rownames(COUNT))
+PLOTNAME<-"whole L1"
+pdf(paste0("boxplot_",PLOTNAME,"_INTERINTRA.pdf"))
+illust_InterIntraBox(PLOTL1,PLOTNAME,Treatset,Controlset)
+dev.off()
+
+
+###### for mouse
+
+PLOTL1<-which(GeneDesc$Type=="L1-fli-A")
+PLOTNAME<-"L1 subfamily A"
+pdf(paste0("boxplot_",PLOTNAME,"_INTERINTRA.pdf"))
+illust_InterIntraBox(PLOTL1,PLOTNAME,Treatset,Controlset)
+dev.off()
+
+PLOTL1<-which(GeneDesc$Type=="L1-fli-G")
+PLOTNAME<-"L1 subfamily G"
+pdf(paste0("boxplot_",PLOTNAME,"_INTERINTRA.pdf"))
+illust_InterIntraBox(PLOTL1,PLOTNAME,Treatset,Controlset)
+dev.off()
+
+PLOTL1<-which(GeneDesc$Type=="L1-fli-G.T")
+PLOTNAME<-"L1 subfamily GT"
+pdf(paste0("boxplot_",PLOTNAME,"_INTERINTRA.pdf"))
+illust_InterIntraBox(PLOTL1,PLOTNAME,Treatset,Controlset)
+dev.off()
+
+PLOTL1<- which(GeneDesc$Type=="L1-fli-T")
+PLOTNAME<-"L1 subfamily T"
+pdf(paste0("boxplot_",PLOTNAME,"_INTERINTRA.pdf"))
+illust_InterIntraBox(PLOTL1,PLOTNAME,Treatset,Controlset)
+dev.off()
+
+PLOTL1<- union(which(GeneDesc$Type=="L1-fli-G"),which(GeneDesc$Type=="L1-fli-G.T"))
+PLOTNAME<-"L1 subfamily GandGT"
+pdf(paste0("boxplot_",PLOTNAME,"_INTERINTRA.pdf"))
+illust_InterIntraBox(PLOTL1,PLOTNAME,Treatset,Controlset)
+dev.off()
+
+PLOTL1<- which(GeneDesc$Type=="L1-fli-F")
+PLOTNAME<-"L1 subfamily F"
+pdf(paste0("boxplot_",PLOTNAME,"_INTERINTRA.pdf"))
+illust_InterIntraBox(PLOTL1,PLOTNAME,Treatset,Controlset)
+dev.off()
