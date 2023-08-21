@@ -11,7 +11,7 @@ This is the MORE-RNAseq pipeline, a series of scripts analyzing RNA sequencing o
     1. Quality check of raw fastq data
     1. trimming adapter sequences and removing low-quality bases
     1. Quality check after trimming
-1. **Mapping and counting: `Exec_MORE-RNAseq_02.zsh` ( 009.zsh to 019.zsh)**
+1. **Mapping and counting: `Exec_MORE-RNAseq_02.zsh` (009.zsh to 019.zsh)**
     1. Prepare the references with GTF data of **[MORE reference](https://github.com/molbrain/MORE-reference)**
     1. Mapping with prepared reference
     1. Calculate the expression of L1 transposons and genes
@@ -44,13 +44,16 @@ If you have already trimmed fastq files, maybe the step of `Exec_MORE-RNAseq_01.
 - [Trimmomatic](https://github.com/usadellab/Trimmomatic)
 - [R](https://www.r-project.org) and [Bioconductor](https://www.bioconductor.org) ([edgeR](https://bioconductor.org/packages/release/bioc/html/edgeR.html))
 
+You can use the same tools via the Dockerfile. Please see the below.
+
 ### Environment of developing this pipeline
 
-- CentOS7 (v7.5.1804)
 - zsh (v5.0.2)
 - Java (1.8.0_191)
 - Perl (v5.16.3)
 - R (v3.5.1)
+
+You can use the environment via the Dockerfile. Please see the below.
 
 ### Usage
 
@@ -68,23 +71,21 @@ Please copy all scripts in the same working directory as the below image.
                         ├─ * 00000setup.zsh
                         ├─ **Reference/ ─┬─ **Original/ ─┬─ **Home_sapiens.GRCh38.dna.primary_assembly.fa.gz
                         │                │               └─ **Home_sapiens.GRCh38.102.gtf.gz
-                        │                │                   
-                        │                │                   
-                        │                │                   
-                        │                │                   
+                        │                ├─  ...
+                        │                ├─ ...
                         │                ├─  GRCh38.102.gtf  # automatically created
-                        │                ├─  GRCh38.102.fa   # automatically created
-                        │                └─ ...              
+                        │                └─  GRCh38.102.fa   # automatically created
                         │
                         ├─  Exec_MORE-RNAseq_01.zsh  # provided
                         ├─  Exec_MORE-RNAseq_02.zsh  # provided
+                        ├─  Exec_MORE-RNAseq_03.zsh  # provided
                         │
                         ├─  MORE-RNAseq/    ─┬─ 000.zsh  # provided
                         │                    ├─ 001.zsh  # provided
                         │                    ├─ ...
-                        │                    ├─  MORE-reference/ ─┬─ ...  # provided
-                        │                                         ├─ ...
-                        │                                         └─ ...
+                        │                    └─ MORE-reference/ ─┬─ ...  # provided
+                        │                                        ├─ ...
+                        │                                        └─ ...
                         ├─  LOGS/  # automatically created
                         └─  TEMP/  # automatically created
 
@@ -109,12 +110,17 @@ http://nov2020.archive.ensembl.org/index.html
 http://nov2020.archive.ensembl.org/info/data/ftp/index.html
 
 For example, like the below command.
-```
-## Load the GENOME, SPECIES, CAP_SPECIES, and ENSRELEASE
-## or set the variables directory, like as GENOME, SPECIES, CAP_SPECIES, and ENSRELEASE
+```sh
+## Please set the variables GENOME, SPECIES, CAP_SPECIES, and ENSRELEASE
+## Or load the variabls via 00000setup.zsh
+## SPECIES=home_sapiens
+## CAP_SPECIES=Home_sapiens
+## ENSRELEASE=102
+
 source 00000setup.zsh
 
 ## Download the references (FASTA and GTF) from Ensembl directly
+
 wget \
     --directory-prefix=./Reference/Original \
     ftp://ftp.ensembl.org/pub/release-${ENSRELEASE}/fasta/${SPECIES}/dna/${CAP_SPECIES}.${GENOME}.dna.primary_assembly.fa.gz \
@@ -124,9 +130,9 @@ wget \
 Especially, **`"mart_export.GRCm38.102.txt.gz"`** or **`"mart_export.GRCh38.102.txt.gz"`** (used in `019.zsh`) are available from the [BioMart on Ensembl 102](http://nov2020.archive.ensembl.org/biomart/martview). The data of `"Gene stable ID"`, `"Gene name"`, `"Chromosome/scaffold name"`, `"Strand"`, `"Gene start (bp)"`, `"Gene end (bp)"`, `"Gene description"`, and `"Gene type"` columns in `Attribute` section are required for output `Results` as those `"mart_export....txt.gz"` files, with the order of columns above. And Export format is `TSV` and `"Compressed file (.gz)"` with checking `"Unique results only"`.
 If you want, Filtering by `"Transcript support level (TSL)"` and/or `"Gene Type"` is of course OK.
 
-If you need, you can use the other release (of course the latest one).
+If you need, you can use the other release version of Ensembl (of course the latest one), but using L1 location informations depend on GRCh38/GRCm38. So please use the corresponding release versions.
 
-Additionally, when you use the R-scripts example in this pipeline, please prepare `Sample_Annot.txt`. This file is in TSV (tab-delimiter text) format and you can edit `Sample_Annot_template.txt` by using Excel and so on.
+Additionally, when you use the R-scripts example in this pipeline, please prepare **`Sample_Annot.txt`**. This file is in TSV (tab-delimiter text) format and you can edit `Sample_Annot_template.txt` by using Excel and so on.
 
 
 ### Note
@@ -242,13 +248,54 @@ STRANDEDNESS=reverse
 ```
 
 
-#### Note 4. Required tool installation
+#### Note 4. Required tool preparation
 
-In some cases, RSEM is not available in your system, because you are not the admin and cannot install the new libraries.
-If that is, please use `local::lib` or miniconda/anaconda for the installation to your home directories, or use Docker/Singularity, etc.
+If Docker is available in your system, you can use the **Dockerfile** which includes all the tools in the pipeline.
+One of the usage examples is the one below (each command is the same in **`dokcer/docker.sh`**).
+
+```sh
+## Move to the Dockerfile's directory
+$ cd docker/
+## Build the image from Dockerfile
+$ docker build -t yourtest:MORE-RNAseq .
+## Prepare the container from the image
+$ docker run -dit --name more-rnaseq yourtest:MORE-RNAseq
+## Use the container as your test environment
+$ docker exec -it more-rnaseq /bin/bash
+```
+
+In using Docker for the test of MORE-RNAseq, the `-v` option is **NOT** recommended in `docker run` to refer your data because the process will become too slow with `-v` volume on the data input/output in STAR (009 and 010) and RSEM (013) steps. So **`docker cp`** is recommended to use your data.
+
+```sh
+$ docker cp /path/to/yourData/ more-rnaseq:/root/testdata/
+```
+
+After doing the MORE-RNAseq pipeline, the results are available in your intact storage by the below example command.
+
+```sh
+$ docker cp more-rnaseq:/root/testdata/Results/ /path/to/copiedResults/
+```
+
+All the tools prepared in Dockerfile are the follows (all tools have the same versions as the ones described in the manuscript, Du et al.):
+- CentOS7 (7.9.2009)
+- zsh (v5.0.2)
+- Java (1.8.0)
+- Perl (v5.16.3)
+- R (v3.5.1)
+- STAR ()
+- RSEM ()
+- FastQC ()
+- fastq-stats (ea-utils) ()
+- Cutadapt ()
+- Trimmomatic ()
+- edgeR ()
+
+In the case of the Docker-unavailable environment on your using system (e.g. you don't have the permission of Docker execution), all tools are needed to install. In some cases, any installation are unavailable in your system, because you are not the admin and cannot install the new libraries.
+If those, please use **`local::lib`** or **miniconda/anaconda** for the installation to your home directories.
 
 
-#### Note 5. No need for the trimming step
+
+#### Note 5. If you don't need the trimming step
 
 If your FASTQ files are already trimmed, you can skip the `Exec_MORE-RNAseq_01.zsh` step and directly can do the `Exec_MORE-RNAseq_02.zsh`. In this case, you should create the `TEMP/TRIMMOMATIC` and `Results` directories by yourself, and put your **RENAMED** FASTQ files like below in the `TEMP/TRIMMOMATIC` directory. And also you should prepare the `Results/list_dataName.txt` file in the `Result` directory, like below.
 
