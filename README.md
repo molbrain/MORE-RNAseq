@@ -18,7 +18,21 @@ $ cd yourDir
 $ ls .
 ```
 
-(2) Confirm and modify the information described in **`Sample_Annot.txt`** and **`00000setup.zsh`** of **`MORE-RNAseq`** directory.
+
+(2) Prepare your **RNA-seq data (fastq)** and **reference data (fastq/gtf)** in the `Rawdata` and `Reference/Original` directory, respectively.
+```sh
+## in yourDir as your working directory
+$ mkdir Rawdata
+$ cp -r /your/original/fastq_dataDir Rawdata
+$ source 00000setup.zsh
+$ wget \
+    --directory-prefix=./Reference/Original \
+    ftp://ftp.ensembl.org/pub/release-${ENSRELEASE}/fasta/${SPECIES}/dna/${CAP_SPECIES}.${GENOME}.dna.primary_assembly.fa.gz \
+    ftp://ftp.ensembl.org/pub/release-${ENSRELEASE}/gtf/${SPECIES}/${CAP_SPECIES}.${GENOME}.${ENSRELEASE}.gtf.gz
+```
+
+
+(3) Confirm and modify the information described in **`Sample_Annot.txt`** and **`00000setup.zsh`** of **`MORE-RNAseq`** directory.
 
 - **`Sample_Annot.txt`** : tab-delimited plain text file for your sample annotation
 ```
@@ -42,19 +56,8 @@ THREAD=4
 ...
 ```
 
-(3) Prepare your **RNA-seq data (fastq)** and **reference data (fastq/gtf)** in the `Rawdata` and `Reference/Original` directory, respectively.
-```sh
-## in yourDir as your working directory
-$ mkdir Rawdata
-$ cp -r /your/original/fastq_dataDir Rawdata
-$ source 00000setup.zsh
-$ wget \
-    --directory-prefix=./Reference/Original \
-    ftp://ftp.ensembl.org/pub/release-${ENSRELEASE}/fasta/${SPECIES}/dna/${CAP_SPECIES}.${GENOME}.dna.primary_assembly.fa.gz \
-    ftp://ftp.ensembl.org/pub/release-${ENSRELEASE}/gtf/${SPECIES}/${CAP_SPECIES}.${GENOME}.${ENSRELEASE}.gtf.gz
-```
 
-(3) Setup the environment via **Dockerfile**
+(4) Setup the environment via **Dockerfile**
 ```sh
 ## in yourDir as your working directory
 $ docker build -t yourtest:MORE-RNAseq MORE-RNAseq/docker/
@@ -63,7 +66,8 @@ $ docker cp ../yourDir more-rnaseq:/root/test
 $ docker exec -it more-rnaseq /bin/bash
 ```
 
-(4) Execute the **MORE-RNAseq** pipeline via scripts **`Exec_MORE-RNAseq_...zsh`** inside of Docker container.
+
+(5) Execute the **MORE-RNAseq** pipeline via scripts **`Exec_MORE-RNAseq_...zsh`** inside of Docker container.
 ```sh
 ## in bash of Docker container
 $ cd /root/test
@@ -82,7 +86,7 @@ $ ls Results
 ```
 
 
-## Outline of workflow
+## Outline of the pipeline workflow
 
 ##### 1. **Pre-preparation**: `Exec_MORE-RNAseq_01.zsh`
 - 000: Initial setup
@@ -135,12 +139,13 @@ You can use the same tools via the Dockerfile. Please see the below.
 
 ### Environment of developing this pipeline
 
+- CentOS linux (v7.5)
 - zsh (v5.0.2)
-- Java (1.8.0_191)
+- Java (1.8.0)
 - Perl (v5.16.3)
 - R (v3.5.1)
 
-You can use the environment via the Dockerfile. Please see the below.
+You can use the test environment via the Dockerfile. Please see the below.
 
 ## Usage
 
@@ -365,19 +370,19 @@ After doing the MORE-RNAseq pipeline, the results are available in your intact s
 $ docker cp more-rnaseq:/root/testdata/Results/ /path/to/copiedResults/
 ```
 
-All the tools prepared in Dockerfile are the follows (all tools have the same versions as the ones described in the manuscript, Du et al.):
-- CentOS7 (7.9.2009)
+All the tools prepared in Dockerfile are the follows (Except for the CentOS linux minier version, all tools have the same versions as the ones described in the manuscript, Du et al.):
+- CentOS linux (v7.9)
 - zsh (v5.0.2)
 - Java (1.8.0)
 - Perl (v5.16.3)
 - R (v3.5.1)
-- STAR ()
-- RSEM ()
-- FastQC ()
-- fastq-stats (ea-utils) ()
-- Cutadapt ()
-- Trimmomatic ()
-- edgeR ()
+- STAR (v2.6.0c)
+- RSEM (c1.3.3)
+- FastQC (v0.11.8)
+- fastq-stats (ea-utils) (v1.01)
+- Cutadapt (v1.18)
+- Trimmomatic (v0.38)
+- edgeR (v3.22.5, with limma v3.36.5)
 
 In the case of the Docker-unavailable environment on your using system (e.g. you don't have the permission of Docker execution), all tools are needed to install. In some cases, any installation are unavailable in your system, because you are not the admin and cannot install the new libraries.
 If those, please use **`local::lib`** or **miniconda/anaconda** for the installation to your home directories.
