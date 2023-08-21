@@ -3,7 +3,7 @@
 ## Summary
 
 This is the MORE-RNAseq pipeline, a series of scripts analyzing RNA sequencing of genes and L1 transposons.
-(Du J, Nakachi Y, Watanabe R, Bundo M and Iwamoto K. 2023. In preparation)
+(Du J, Nakachi Y, Watanabe R, Yanagida Y, Bundo M and Iwamoto K. 2023. In preparation)
 
 ## Quick usage
 
@@ -132,7 +132,7 @@ $ ls Results
 - 020_005: Box plot of the intergenic and intragenic L1 expression
 
 
-## Require tools
+## Required tools
 
 - [zsh](https://www.zsh.org)
 - [Perl](https://www.perl.org): for RSEM and some pipeline scripts
@@ -161,7 +161,7 @@ You can use the test environment via the Dockerfile. Please see the below.
 
 The detailed description for MORE-RNAseq for the bulk pair-end RNA-seq data.
 
-For using, please confirm all the scripts exist in the same working directory as the below image.
+For use, please confirm all the scripts exist in the same working directory as the below image.
 ```
 **(Working directory)/ ─┬─ ** Rawdata/ ──┬─ ** Sample_001_R1.fastq.gz
                         │                ├─ ** Sample_001_R2.fastq.gz
@@ -172,7 +172,7 @@ For using, please confirm all the scripts exist in the same working directory as
                         ├─ ** Reference/ ─┬─ **Original/ ─┬─ **Home_sapiens.GRCh38.dna.primary_assembly.fa.gz
                         │                 │               └─ **Home_sapiens.GRCh38.102.gtf.gz
                         │                 ├─
-                        │                 ├─  # Many files might automatically created
+                        │                 ├─  # Many files might automatically be created
                         │                 └─ 
                         │
                         ├─ * Sample_Annot.txt
@@ -385,7 +385,7 @@ For Illumina TruSeq Stranded protocols, you should use 'reverse'.
 STRANDEDNESS=reverse
 ```
 
-If you use the Docker container, the recommendation of data loading and writing is via **`docker cp`** NOT `-v` option because the process speed is quite different.
+If you use the Docker container, the recommendation of data loading and writing is via **`docker cp`** NOT `-v` option because the processing speed is quite different.
 
 ### Note 4. Required tool preparation and Docker usage
 
@@ -409,7 +409,7 @@ In using Docker for the test of MORE-RNAseq, the `-v` option is **NOT** recommen
 $ docker cp /path/to/yourData/ more-rnaseq:/root/testdata/
 ```
 
-In STAR and RSEM step, the shortage of memory or storage size frequently occur. The resource setting of docker is useful. The recommended setting are >42GB of "Memory", >4 core of "CPUs", and "Virtual disk limit" is >180GB.
+In STAR and RSEM step, the shortage of memory or storage size frequently occur. The resource setting of docker is useful. The recommended setting are >42 GB of "Memory", >4 core of "CPUs", and "Virtual disk limit" is >180 GB.
 
 Or in the indexing step of genome by STAR, adding the option "--limitGenomeGenerateRAM" is also good. The STAR indexing step frequently required a large memory size not only for MORE-RNAseq but also for any other usage. Please see the help and related documents of STAR.
 
@@ -435,7 +435,7 @@ All the tools prepared in Dockerfile are the follows (Except for the CentOS linu
 
 ### Not using Dockerfile
 
-In the case of the Docker-unavailable environment on your using system (e.g. you don't have the permission of Docker execution), all tools are needed to install. In some cases, any installation are unavailable in your system, because you are not the admin and cannot install the new libraries.
+In the case of the Docker-unavailable environment on your using system (e.g. you don't have permission for Docker execution), all tools are needed to install. In some cases, any installation are unavailable in your system, because you are not the admin and cannot install the new libraries.
 If those, please use **`local::lib`** or **miniconda/anaconda** for the installation to your home directories.
 
 
@@ -483,7 +483,7 @@ bar02
 The `readPerGenes` count data output directly from STAR is also available using the script `018.zsh`.
 You can use the data instead of the RSEM `expected_count` data alternatively.
 
-### Note 7. Version of reference genome and annotation
+### Note 7. The version of the reference genome and annotation
 
 All the data of Ensembl release 102 (which version used in this pipeline) are available from the URL below.
 http://nov2020.archive.ensembl.org/index.html
@@ -491,11 +491,11 @@ http://nov2020.archive.ensembl.org/index.html
 Especially, the original data of **`"mart_export.GRCm38.102.txt.gz"`** or **`"mart_export.GRCh38.102.txt.gz"`** (used in `019.zsh`) are available from the [BioMart on Ensembl 102](http://nov2020.archive.ensembl.org/biomart/martview).
 
 1. The data of `"Gene stable ID"`, `"Gene name"`, `"Chromosome/scaffold name"`, `"Strand"`, `"Gene start (bp)"`, `"Gene end (bp)"`, `"Gene description"`, and `"Gene type"` columns in `Attribute` section are required for output `Results` as those `"mart_export....txt.gz"` files, with the order of columns above.
-1. And Export format is `TSV` and `"Compressed file (.gz)"` with checking `"Unique results only"`.
+1. And the Export format is `TSV` and `"Compressed file (.gz)"` with checking `"Unique results only"`.
 
 If you want, Filtering by `"Transcript support level (TSL)"` and/or `"Gene Type"` is of course OK.
 
-If you need, you can use the other release version of Ensembl (of course the latest one), but using L1 location informations depend on GRCh38/GRCm38. So please use the corresponding release versions.
+If you need, you can use the other release version of Ensembl (of course the latest one), but using L1 location information depends on GRCh38/GRCm38. So please use the corresponding release versions.
 
 
 ### Note 7. Reuse the indexed reference
@@ -509,7 +509,7 @@ The way of using symbolic links (like `ln -s Reference230820 Reference`) is also
 
 In R analysis, the sample number of each group is recommended more than 2, especially for analysis with edgeR (020_004), regardless of whether some parts of 020 R scripts seem to be working.
 
-And please prepare the prefer **`Sample_Annot.txt`**.
+And please prepare the preferred **`Sample_Annot.txt`**.
 
 - This file is in TSV (tab-delimiter text) format and you can edit `Sample_Annot_template.txt` by using Excel and so on.
 
