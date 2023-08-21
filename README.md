@@ -7,21 +7,24 @@ This is the MORE-RNAseq pipeline, a series of scripts analyzing RNA sequencing o
 
 ## Quick usage
 
-(1) Download the **MORE-RNAseq** scripts from https://github.com/molbrain/MORE-RNAseq/releases and decompress in your working direcory.
-
+(1) Download the **MORE-RNAseq** scripts from https://github.com/molbrain/MORE-RNAseq/releases and decompress.
 ```sh
-## In this case, yourDir (renamed decompressed directory) is as your working directory
+## In this case, yourDir (decompressed and renamed directory) is as your working directory
 $ curl -OL https://github.com/molbrain/MORE-RNAseq/archive/refs/tags/v1.0.1.tar.gz
 $ tar zxvf v1.0.1.tar.gz
 $ mv MORE-RNAseq-1.0.1 yourDir
 $ cd yourDir
 $ ls .
+
+## Of course the way with web browser downloads and put each file via GUI (with mouse drag-and-drop) manually are OK.
 ```
 
 
-(3) Confirm and modify the information described in **`Sample_Annot.txt`** and **`00000setup.zsh`** of **`MORE-RNAseq`** directory.
 
-- **`Sample_Annot.txt`** : tab-delimited plain text file for your sample annotation
+
+(2) Confirm and modify the information described in **`Sample_Annot.txt`** and **`00000setup.zsh`** of **`MORE-RNAseq`** directory.
+
+- **`Sample_Annot.txt`** is a tab-delimited plain text file for your sample annotation. An example is below. `Feature1` column is used in R script of edgeR (020).
 ```
 Data	Sample	Dataset	Feature1
 Sample_001	CB6_A	TR-0001	Control
@@ -31,20 +34,40 @@ Sample_006	CB6_D	TR-0001	Treat
 Sample_007	CB6_E	TR-0001	Treat
 Sample_008	CB6_F	TR-0001	Treat
 ```
-- **`00000setup.zsh`** : including the variables used in the pipeline 
+
+- **`00000setup.zsh`** is the setting file including the variables used in the pipeline. You should confirm the contents, like the below variables.
 ```sh
 GENOME=GRCh38
 SPECIES=home_sapiens
 ENSRELEASE=102
 #  (if mouse, use GRCm38/mus_musculus/102)
+...
 READ_LENGTH=150
+...
 THREAD=4
 ...
 ...
 ```
 
 
-(4) Setup the environment via **Dockerfile**
+(4) Prepare your **RNA-seq data (fastq)** and **reference data (fastq/gtf)** in the `Rawdata` and `Reference/Original` directory, respectively.
+```bash
+## in yourDir as your working directory
+$ cd /root/yourDir
+$ mkdir Reference
+$ mkdir Reference/Original
+$ source 00000setup.zsh
+$ curl -s -o Reference/Original ${CAP_SPECIES}.${GENOME}.dna.primary_assembly.fa.gz ./Reference/Original ftp://ftp.ensembl.org/pub/release-${ENSRELEASE}/fasta/${SPECIES}/dna/${CAP_SPECIES}.${GENOME}.dna.primary_assembly.fa.gz
+$ curl -s -o Reference/Original/${CAP_SPECIES}.${GENOME}.${ENSRELEASE}.gtf.gz ftp://ftp.ensembl.org/pub/release-${ENSRELEASE}/gtf/${SPECIES}/${CAP_SPECIES}.${GENOME}.${ENSRELEASE}.gtf.gz
+
+## Of course the way with web browser downloads and put each file via GUI manually are OK.
+## http://ftp.ensembl.org/pub/release-102/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
+## http://ftp.ensembl.org/pub/release-102/gtf/homo_sapiens/Homo_sapiens.GRCh38.102.gtf.gz
+```
+
+
+
+(3) Setup the environment via **Dockerfile**
 ```sh
 ## in yourDir as your working directory
 $ docker build -t yourtest:MORE-RNAseq MORE-RNAseq/docker/
@@ -53,25 +76,15 @@ $ docker cp ../yourDir more-rnaseq:/root/yourDir
 $ docker exec -it more-rnaseq /bin/bash
 ```
 
-(2) Prepare your **RNA-seq data (fastq)** and **reference data (fastq/gtf)** in the `Rawdata` and `Reference/Original` directory, respectively.
-```bash
-## in bash of Docker container
-$ cd /root/yourDir
-$ source 00000setup.zsh
-$ wget \
-    --directory-prefix=./Reference/Original \
-    ftp://ftp.ensembl.org/pub/release-${ENSRELEASE}/fasta/${SPECIES}/dna/${CAP_SPECIES}.${GENOME}.dna.primary_assembly.fa.gz \
-    ftp://ftp.ensembl.org/pub/release-${ENSRELEASE}/gtf/${SPECIES}/${CAP_SPECIES}.${GENOME}.${ENSRELEASE}.gtf.gz
-```
 
 (5) Execute the **MORE-RNAseq** pipeline via scripts **`Exec_MORE-RNAseq_...zsh`** inside of Docker container.
 ```bash
 ## in bash of Docker container
 $ cd /root/test
-$ zsh Exec_MORE-RNAseq_01.zsh
-$ zsh Exec_MORE-RNAseq_02.zsh
-$ zsh Exec_MORE-RNAseq_03.zsh
-$ zsh Exec_MORE-RNAseq_04.zsh
+$ zsh ./Exec_MORE-RNAseq_01.zsh
+$ zsh ./Exec_MORE-RNAseq_02.zsh
+$ zsh ./Exec_MORE-RNAseq_03.zsh
+$ zsh ./Exec_MORE-RNAseq_04.zsh
 $ exit
 ```
 
@@ -183,22 +196,19 @@ Please copy all scripts in the same working directory as the below image.
 ** : need to prepare by the user (create/download)
 *  : need to modify by the user (edit/confirm)
 ```
-Asterisk (\*\* or *) indicates the files/directories that need to prepare or modify, respectively.
+- Asterisk (\*\* or *) indicates the files/directories that need to prepare or modify, respectively.
 Your RNA-seq data (fastq files) is needed to copy into the subdirectory named `Rawdata` in your working directory.
 
-After modifying some parts of the above scripts properly, do these sequentially by the order of the number of each script in the same directory.
+- After modifying some parts of the above scripts properly, do these sequentially by the order of the number of each script in the same directory.
 
-The information on the parts which should be modified and the other points to take care of are described in the below Note section.
+- The information on the parts which should be modified and the other points to take care of are described in the below Note section.
 
 The workflow is the typical usage for MORE-RNAseq, so of course you can modify the pipeline and exchange the tools as you like.
 
 After creating the directory `Reference` and the subdirectory `Original`, Prepare the reference file in **`./Reference/Original`** by download.
 
-All data of Ensembl release 102 (which version used in this pipeline) are available from the URL below.
-http://nov2020.archive.ensembl.org/index.html
-
-**The reference genome DNA files (FASTA format) and the GTF files** in Ensembl release 102 are available below.
-http://nov2020.archive.ensembl.org/info/data/ftp/index.html
+- **The reference genome DNA files (FASTA format) and the GTF files** in Ensembl release 102 are available below.
+- http://nov2020.archive.ensembl.org/info/data/ftp/index.html
 
 For example, like the below command.
 ```sh
@@ -218,21 +228,24 @@ wget \
     ftp://ftp.ensembl.org/pub/release-${ENSRELEASE}/gtf/${SPECIES}/${CAP_SPECIES}.${GENOME}.${ENSRELEASE}.gtf.gz
 ```
 
-Especially, **`"mart_export.GRCm38.102.txt.gz"`** or **`"mart_export.GRCh38.102.txt.gz"`** (used in `019.zsh`) are available from the [BioMart on Ensembl 102](http://nov2020.archive.ensembl.org/biomart/martview). The data of `"Gene stable ID"`, `"Gene name"`, `"Chromosome/scaffold name"`, `"Strand"`, `"Gene start (bp)"`, `"Gene end (bp)"`, `"Gene description"`, and `"Gene type"` columns in `Attribute` section are required for output `Results` as those `"mart_export....txt.gz"` files, with the order of columns above. And Export format is `TSV` and `"Compressed file (.gz)"` with checking `"Unique results only"`.
-If you want, Filtering by `"Transcript support level (TSL)"` and/or `"Gene Type"` is of course OK.
 
-If you need, you can use the other release version of Ensembl (of course the latest one), but using L1 location informations depend on GRCh38/GRCm38. So please use the corresponding release versions.
+Additionally, when you use the R-scripts example in this pipeline, please prepare **`Sample_Annot.txt`**.
 
-Additionally, when you use the R-scripts example in this pipeline, please prepare **`Sample_Annot.txt`**. This file is in TSV (tab-delimiter text) format and you can edit `Sample_Annot_template.txt` by using Excel and so on.
+- This file is in TSV (tab-delimiter text) format and you can edit `Sample_Annot_template.txt` by using Excel and so on.
 
 
 ### Note
 
-When you use this pipeline of MORE-RNAseq, you have to take care of some parts in scripts as follows:
+When you use this pipeline of MORE-RNAseq, you should take care of or modified some parts in scripts as follows:
 
-1. In all of the scripts, the path information of each tool and directory is referred from the **`00000setup.zsh`** file.
-1. In the STAR mapping step (`010_STAR_mapping.zsh`), some options of STAR are not the default.
-1. In the case that RSEM is not available because you are not the admin and cannot install the new libraries to your system, please use local::lib, miniconda/anaconda, Docker, etc.
+1. PATH and VARIABLE information (about the **`00000setup.zsh`** file)
+1. **STAR** options
+1. **RSEM** options
+1. Required tool preparation and **Docker** usage
+1. The trimming step
+1. STAR readPerGenes count data
+1. Reusability of the indexed reference
+1. The number of samples in R analysis
 
 
 #### Note 1. PATH and VARIABLE information
@@ -332,13 +345,14 @@ ISPAIREDREAD=1
 With the settings above, `--paired-end` option will not be used.
 
 Additionally, when your RNA-seq data was prepared by the 'stranded' library protocol, please modify the below setting in **`00000setup.zsh`**.
+
 RSEM default is `--strandedness none`, and the MORE-RNAseq pipeline (this example) is also set `STRANDEDNESS=none` in **`00000setup.zsh`**.
 For Illumina TruSeq Stranded protocols, you should use 'reverse'. 
 ```zsh
 STRANDEDNESS=reverse
 ```
 
-If you use the Docker container, the recommendation of data loading and writing is vir **`docker cp`**, NOT `-v` option because the process speed is quite different.
+If you use the Docker container, the recommendation of data loading and writing is via **`docker cp`** NOT `-v` option because the process speed is quite different.
 
 #### Note 4. Required tool preparation and Docker usage
 
@@ -363,6 +377,7 @@ $ docker cp /path/to/yourData/ more-rnaseq:/root/testdata/
 ```
 
 In STAR and RSEM step, the shortage of memory or storage size frequently occur. The resource setting of docker is useful. The recommended setting are >42GB of "Memory", >4 core of "CPUs", and "Virtual disk limit" is >180GB.
+
 Or in the indexing step of genome by STAR, adding the option "--limitGenomeGenerateRAM" is also good. The STAR indexing step frequently required a large memory size not only for MORE-RNAseq but also for any other usage. Please see the help and related documents of STAR.
 
 After doing the MORE-RNAseq pipeline, the results are available in your intact storage by the below example command.
@@ -385,6 +400,8 @@ All the tools prepared in Dockerfile are the follows (Except for the CentOS linu
 - Trimmomatic (v0.38)
 - edgeR (v3.22.5, with limma v3.36.5)
 
+##### Not using Dockerfile
+
 In the case of the Docker-unavailable environment on your using system (e.g. you don't have the permission of Docker execution), all tools are needed to install. In some cases, any installation are unavailable in your system, because you are not the admin and cannot install the new libraries.
 If those, please use **`local::lib`** or **miniconda/anaconda** for the installation to your home directories.
 
@@ -395,7 +412,7 @@ If those, please use **`local::lib`** or **miniconda/anaconda** for the installa
 If your FASTQ files are already trimmed, you can skip the `Exec_MORE-RNAseq_01.zsh` step and directly can do the `Exec_MORE-RNAseq_02.zsh`. In this case, you should create the `TEMP/TRIMMOMATIC` and `Results` directories by yourself, and put your **RENAMED** FASTQ files like below in the `TEMP/TRIMMOMATIC` directory. And also you should prepare the `Results/list_dataName.txt` file in the `Result` directory, like below.
 
 If your FASTQ files which already been trimmed are :
-```txt
+```text
 foo01_R1.fastq.gz
 foo01_R2.fastq.gz
 foo02_R1.fastq.gz
@@ -408,7 +425,7 @@ bar02_R2.fastq.gz
 
 RENAMEED files in the `TEMP/TRIMMOMATIC` directory should be :
 (The filenames are added "trimmed_" prefixes, and altered "fastq" to "fq")
-```txt
+```text
 trimmed_foo01_R1.fq.gz
 trimmed_foo01_R2.fq.gz
 trimmed_foo02_R1.fq.gz
@@ -421,7 +438,7 @@ trimmed_bar02_R2.fq.gz
 
 
 `Results/list_dataName.txt` should be :
-```txt
+```text
 foo01
 foo02
 bar01
@@ -433,12 +450,26 @@ bar02
 The `readPerGenes` count data output directly from STAR is also available using the script `018.zsh`.
 You can use the data instead of the RSEM `expected_count` data alternatively.
 
+#### Note 7. Version of reference genome and annotation
+
+All the data of Ensembl release 102 (which version used in this pipeline) are available from the URL below.
+http://nov2020.archive.ensembl.org/index.html
+
+Especially, the original data of **`"mart_export.GRCm38.102.txt.gz"`** or **`"mart_export.GRCh38.102.txt.gz"`** (used in `019.zsh`) are available from the [BioMart on Ensembl 102](http://nov2020.archive.ensembl.org/biomart/martview).
+
+1. The data of `"Gene stable ID"`, `"Gene name"`, `"Chromosome/scaffold name"`, `"Strand"`, `"Gene start (bp)"`, `"Gene end (bp)"`, `"Gene description"`, and `"Gene type"` columns in `Attribute` section are required for output `Results` as those `"mart_export....txt.gz"` files, with the order of columns above.
+1. And Export format is `TSV` and `"Compressed file (.gz)"` with checking `"Unique results only"`.
+
+If you want, Filtering by `"Transcript support level (TSL)"` and/or `"Gene Type"` is of course OK.
+
+If you need, you can use the other release version of Ensembl (of course the latest one), but using L1 location informations depend on GRCh38/GRCm38. So please use the corresponding release versions.
+
 
 #### Note 7. Reuse the indexed reference
 
 The indexing step of the reference genome will need quite huge time and machine resources. So during the calculation with the same dataset or another data with the same library conditions, you can reuse and share the indexed reference files which have been calculated once.
 
-The way of using symbolic links like `ln -s Reference230820 Reference` is also OK and works well. (However, maybe the '-v' option of 'docker run' is not recommended for the slow I/O speed and consumed resources.)
+The way of using symbolic links (like `ln -s Reference230820 Reference`) is also OK and works well. (However, maybe the '-v' option of 'docker run' is not recommended for the slow I/O speed and consumed resources.)
 
 
 #### Note 8. R analysis
