@@ -1,4 +1,4 @@
-# MORE-RNAseq
+# MORE-RNAseq v1.0.1
 
 ## Summary
 
@@ -431,11 +431,16 @@ bar02
 #### Note 6. STAR `readPerGenes` count data
 
 The `readPerGenes` count data output directly from STAR is also available using the script `018.zsh`.
-You can use the data instead of the RSEM `expected_count` data.
+You can use the data instead of the RSEM `expected_count` data alternatively.
 
 
 #### Note 7. Reuse the indexed reference
 
 The indexing step of the reference genome will need quite huge time and machine resources. So during the calculation with the same dataset or another data with the same library conditions, you can reuse and share the indexed reference files which have been calculated once.
 
-The way of using symbolic links like `ln -s Reference230820 Reference` is also OK and work well. (However, maybe '-v' option of 'docker run' is not recommended for the slow I/O speed and consumed resources.)
+The way of using symbolic links like `ln -s Reference230820 Reference` is also OK and works well. (However, maybe the '-v' option of 'docker run' is not recommended for the slow I/O speed and consumed resources.)
+
+
+#### Note 8. R analysis
+
+In R analysis, the sample number of each group is recommended more than 2, especially for analysis with edgeR (020_004), regardless of whether some parts of 020 R scripts seem to be working.
