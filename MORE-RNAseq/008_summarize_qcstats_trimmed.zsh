@@ -1,7 +1,7 @@
 #!/bin/zsh
 
 ############################################
-## summarize FastQC & fastq-stats (trimmed)
+## summarize FastQC & fastq-stats (trimmed)
 ############################################
 
 echo -n "## START : $0 "
