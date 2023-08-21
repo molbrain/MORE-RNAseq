@@ -9,7 +9,7 @@ tempINTINT<-read.csv("./MORE-RNAseq/MORE-reference/LIST_MOUSE_INTER_INTRA_GENE.c
 temptempINTINT <- data.frame(INTINT=tempINTINT[,1],row.names=rownames(tempINTINT))
 INTER_INTRA <- rep(NA,nrow(GeneDesc))
 names(INTER_INTRA)<-rownames(GeneDesc)
-INTER_INTRA[rownames(temptempINTINT)] <- temptempINTINT[,1]
+INTER_INTRA[rownames(temptempINTINT)] <- as.character(temptempINTINT[,1])
 #rownames(INTER_INTRA)!=rownames(GeneDesc)
 #logical(0)
 
