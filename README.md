@@ -11,24 +11,11 @@ This is the MORE-RNAseq pipeline, a series of scripts analyzing RNA sequencing o
 
 ```sh
 ## In this case, yourDir (renamed decompressed directory) is as your working directory
-$ curl https://github.com/molbrain/MORE-RNAseq/archive/refs/tags/v1.0.1.tar.gz
+$ curl -OL https://github.com/molbrain/MORE-RNAseq/archive/refs/tags/v1.0.1.tar.gz
 $ tar zxvf v1.0.1.tar.gz
-$ mv v1.0.1 yourDir
+$ mv MORE-RNAseq-1.0.1 yourDir
 $ cd yourDir
 $ ls .
-```
-
-
-(2) Prepare your **RNA-seq data (fastq)** and **reference data (fastq/gtf)** in the `Rawdata` and `Reference/Original` directory, respectively.
-```sh
-## in yourDir as your working directory
-$ mkdir Rawdata
-$ cp -r /your/original/fastq_dataDir Rawdata
-$ source 00000setup.zsh
-$ wget \
-    --directory-prefix=./Reference/Original \
-    ftp://ftp.ensembl.org/pub/release-${ENSRELEASE}/fasta/${SPECIES}/dna/${CAP_SPECIES}.${GENOME}.dna.primary_assembly.fa.gz \
-    ftp://ftp.ensembl.org/pub/release-${ENSRELEASE}/gtf/${SPECIES}/${CAP_SPECIES}.${GENOME}.${ENSRELEASE}.gtf.gz
 ```
 
 
@@ -62,13 +49,23 @@ THREAD=4
 ## in yourDir as your working directory
 $ docker build -t yourtest:MORE-RNAseq MORE-RNAseq/docker/
 $ docker run -dit --name more-rnaseq yourtest:MORE-RNAseq
-$ docker cp ../yourDir more-rnaseq:/root/test
+$ docker cp ../yourDir more-rnaseq:/root/yourDir
 $ docker exec -it more-rnaseq /bin/bash
 ```
 
+(2) Prepare your **RNA-seq data (fastq)** and **reference data (fastq/gtf)** in the `Rawdata` and `Reference/Original` directory, respectively.
+```bash
+## in bash of Docker container
+$ cd /root/yourDir
+$ source 00000setup.zsh
+$ wget \
+    --directory-prefix=./Reference/Original \
+    ftp://ftp.ensembl.org/pub/release-${ENSRELEASE}/fasta/${SPECIES}/dna/${CAP_SPECIES}.${GENOME}.dna.primary_assembly.fa.gz \
+    ftp://ftp.ensembl.org/pub/release-${ENSRELEASE}/gtf/${SPECIES}/${CAP_SPECIES}.${GENOME}.${ENSRELEASE}.gtf.gz
+```
 
 (5) Execute the **MORE-RNAseq** pipeline via scripts **`Exec_MORE-RNAseq_...zsh`** inside of Docker container.
-```sh
+```bash
 ## in bash of Docker container
 $ cd /root/test
 $ zsh Exec_MORE-RNAseq_01.zsh
@@ -341,8 +338,9 @@ For Illumina TruSeq Stranded protocols, you should use 'reverse'.
 STRANDEDNESS=reverse
 ```
 
+If you use the Docker container, the recommendation of data loading and writing is vir **`docker cp`**, NOT `-v` option because the process speed is quite different.
 
-#### Note 4. Required tool preparation
+#### Note 4. Required tool preparation and Docker usage
 
 If Docker is available in your system, you can use the **Dockerfile** which includes all the tools in the pipeline.
 One of the usage examples is the one below (each command is the same in **`dokcer/docker.sh`**).
@@ -363,6 +361,9 @@ In using Docker for the test of MORE-RNAseq, the `-v` option is **NOT** recommen
 ```sh
 $ docker cp /path/to/yourData/ more-rnaseq:/root/testdata/
 ```
+
+In STAR and RSEM step, the shortage of memory or storage size frequently occur. The resource setting of docker is useful. The recommended setting are >42GB of "Memory", >4 core of "CPUs", and "Virtual disk limit" is >180GB.
+Or in the indexing step of genome by STAR, adding the option "--limitGenomeGenerateRAM" is also good. The STAR indexing step frequently required a large memory size not only for MORE-RNAseq but also for any other usage. Please see the help and related documents of STAR.
 
 After doing the MORE-RNAseq pipeline, the results are available in your intact storage by the below example command.
 
@@ -432,3 +433,9 @@ bar02
 The `readPerGenes` count data output directly from STAR is also available using the script `018.zsh`.
 You can use the data instead of the RSEM `expected_count` data.
 
+
+#### Note 7. Reuse the indexed reference
+
+The indexing step of the reference genome will need quite huge time and machine resources. So during the calculation with the same dataset or another data with the same library conditions, you can reuse and share the indexed reference files which have been calculated once.
+
+The way of using symbolic links like `ln -s Reference230820 Reference` is also OK and work well. (However, maybe '-v' option of 'docker run' is not recommended for the slow I/O speed and consumed resources.)
