@@ -5,33 +5,102 @@
 This is the MORE-RNAseq pipeline, a series of scripts analyzing RNA sequencing of genes and L1 transposons.
 (Du J, Nakachi Y, Watanabe R, Bundo M and Iwamoto K. 2023. In preparation)
 
+## Quick usage
+
+(1) Download the **MORE-RNAseq** scripts from https://github.com/molbrain/MORE-RNAseq/releases and decompress in your working direcory.
+
+```sh
+## in this case, yourDir is as your working directory
+$ mkdir yourDir
+$ cd yourDir
+$ curl https://github.com/molbrain/MORE-RNAseq/archive/refs/tags/v1.0.1.tar.gz
+$ tar zxvf v1.0.1.tar.gz
+$ ls MORE-RNAseq
+```
+
+(2) Confirm and modify the information described in **`Sample_Annot.txt`** and **`00000setup.zsh`** of **`MORE-RNAseq`** directory.
+
+- **`Sample_Annot.txt`** : tab-delimited plain text file for your sample annotation
+```
+dd
+```
+- **`00000setup.zsh`** : including the variables used in the pipeline 
+```sh
+GENOME=GRCh38
+SPECIES=home_sapiens
+CAP_SPECIES=Home_sapiens
+ENSRELEASE=102
+#  (if mouse, use GRCm38/mus_musculus/Mus_musculus/102)
+```
+
+(3) Prepare your **RNA-seq data (fastq)** and **reference data (fastq/gtf)** in the `Rawdata` and `Reference/Original` directory, respectively.
+```sh
+## in yourDir as your working directory
+$ mkdir Rawdata
+$ cp -r /your/original/fastq_dataDir Rawdata
+$ source 00000setup.zsh
+$ wget \
+    --directory-prefix=./Reference/Original \
+    ftp://ftp.ensembl.org/pub/release-${ENSRELEASE}/fasta/${SPECIES}/dna/${CAP_SPECIES}.${GENOME}.dna.primary_assembly.fa.gz \
+    ftp://ftp.ensembl.org/pub/release-${ENSRELEASE}/gtf/${SPECIES}/${CAP_SPECIES}.${GENOME}.${ENSRELEASE}.gtf.gz
+```
+
+(3) Setup the environment via **Dockerfile**
+```sh
+## in yourDir as your working directory
+$ docker build -t yourtest:MORE-RNAseq MORE-RNAseq/docker/
+$ docker run -dit --name more-rnaseq yourtest:MORE-RNAseq
+$ docker cp ../ more-rnaseq:/root/test
+$ docker exec -it more-rnaseq /bin/bash
+```
+
+(4) Execute the **MORE-RNAseq** pipeline via scripts **`Exec_MORE-RNAseq_...zsh`** inside of Docker container.
+```sh
+## in bash of Docker container
+$ cd /root/test
+$ zsh Exec_MORE-RNAseq_01.zsh
+$ zsh Exec_MORE-RNAseq_02.zsh
+$ zsh Exec_MORE-RNAseq_03.zsh
+$ zsh Exec_MORE-RNAseq_04.zsh
+$ exit
+```
+
+(5) Get the results from Docker container
+```sh
+## in yourDir as your working directory
+$ docker cp more-rnaseq:/root/testdata/Results/ Results
+$ ls Results
+```
+
+
 ## Outline of workflow
 
-1. **Pre-preparation (as you like): `Exec_MORE-RNAseq_01.zsh` (or, perform each script from 000.zsh to 008.zsh)**
-    1. Quality check of raw fastq data
-    1. trimming adapter sequences and removing low-quality bases
-    1. Quality check after trimming
-1. **Mapping and counting: `Exec_MORE-RNAseq_02.zsh` (009.zsh to 019.zsh)**
-    1. Prepare the references with GTF data of **[MORE reference](https://github.com/molbrain/MORE-reference)**
-    1. Mapping with prepared reference
-    1. Calculate the expression of L1 transposons and genes
-    1. Create the read-count/TPM data matrix
-    1. Option: you can get the stats date of each bam file from STAR/RSEM or STAR output logs
-1. **Detection of Differentially Expressed L1s/Genes and Visualization (as you like): Example R scripts (020_001.R.txt to 020_005.R.txt)**
-    1. Data loading from `019.zsh` data (020_001)
-    1. PCA plot of samples (020_002)
-    1. Box plot of the total L1 expression (020_003)
-    1. Volcano plot of the individual L1 expression (020_004)
-    1. Box plot of the total L1 expression (intergenic and intragenic; 020_005) 
+##### 1. **Pre-preparation**: `Exec_MORE-RNAseq_01.zsh`
+- 000.zsh: Initial setup
+- 001.zsh: Quality check of raw fastq data by FastQC
+- 002.zsh: Quality check of raw fastq data by fastq-stats
+- 003.zsh: Summarize the QC data
+- trimming adapter sequences and removing low-quality bases
+- Quality check after trimming
 
-## Recommended pipeline
+##### 2. **Indexing the reference genome**: `Exec_MORE-RNAseq_02.zsh`
+- 009.zsh: Prepare the references with GTF data of **[MORE reference](https://github.com/molbrain/MORE-reference)**
 
-First, put your fastq data of RNA-seq in the `Rawdata` directory.
-And put also the reference genome data in the `Reference/Original` directory.
-Next run the exec scripts **`Exec_MORE-RNAseq_01.zsh`** and **`Exec_MORE-RNAseq_02.zsh`**, then use the R scripts (020_...R.txt) with `Sample_Annot.txt`.
-If you have already trimmed fastq files, maybe the step of `Exec_MORE-RNAseq_01.zsh` is not needed (Please see the below note session).
+##### 3. **Mapping and counting**: `Exec_MORE-RNAseq_03.zsh` (010.zsh to 019.zsh)
+- 010.zsh: Mapping with prepared reference by STAR
+- Calculate the expression of L1 transposons and genes
+- Create the read-count/TPM data matrix
+- Option: you can get the stats date of each bam file from STAR/RSEM or STAR output logs
 
-### Require tools for this pipeline
+##### 4. **Detection of Differentially Expressed L1s and Visualization:** `Exec_MORE-RNAseq_03.zsh`
+- 020_001.R: Data loading from `019.zsh` data
+- 020_002.R: PCA plot of samples
+- 020_003.R: Box plot of the total L1 expression
+- 020_004.R: Volcano plot of the individual L1 expression
+- 020_005.R: Box plot of the intergenic and intragenic L1 expression
+
+
+## Require tools
 
 - [zsh](https://www.zsh.org)
 - [Perl](https://www.perl.org): for RSEM and some pipeline scripts
@@ -55,7 +124,7 @@ You can use the same tools via the Dockerfile. Please see the below.
 
 You can use the environment via the Dockerfile. Please see the below.
 
-### Usage
+## Usage
 
 The typical usage for MORE-RNAseq for the bulk pair-end RNA-seq data.
 
@@ -65,16 +134,18 @@ Please copy all scripts in the same working directory as the below image.
                         │                ├─ **Sample_001_R2.fastq.gz
                         │                ├─ **Sample_002_R1.fastq.gz
                         │                ├─ **Sample_002_R2.fastq.gz
-                        │                ├─  ...
                         │                └─  ...
-                        ├─ * Sample_Annot.txt
-                        ├─ * 00000setup.zsh
+                        │
                         ├─ **Reference/ ─┬─ **Original/ ─┬─ **Home_sapiens.GRCh38.dna.primary_assembly.fa.gz
                         │                │               └─ **Home_sapiens.GRCh38.102.gtf.gz
-                        │                ├─  ...
                         │                ├─ ...
-                        │                ├─  GRCh38.102.gtf  # automatically created
-                        │                └─  GRCh38.102.fa   # automatically created
+                        │                └─ ...
+                        │
+                        ├─ * Sample_Annot.txt
+                        ├─ * 00000setup.zsh
+                        │
+                        ├─  docker ──────┬─ Dockerfile     # provided
+                        │                └─ dockerfile.sh  # provided
                         │
                         ├─  Exec_MORE-RNAseq_01.zsh  # provided
                         ├─  Exec_MORE-RNAseq_02.zsh  # provided
