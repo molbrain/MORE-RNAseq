@@ -1,5 +1,6 @@
 ## R scirpt
 ## 020_001_dataLoad.R.txt
+## v.1.0.1
 
 
 RSEM.expected_count <- read.table("./Results/forR_RSEM.gene.expected_count.matrix.txt",sep="\t",header=TRUE,row.names=1)

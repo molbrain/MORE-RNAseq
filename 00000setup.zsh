@@ -3,6 +3,7 @@
 #################################
 ## 00000setup.zsh
 #################################
+# v1.0.1
 
 echo -n "## source $0 start : "
 date
@@ -70,7 +71,7 @@ TOOL_CUTADAPT=cutadapt
 TOOL_TRIMMOMATIC=trimmomatic
 # If you don't use an executable Trimmomatic but a jar file, please set the below
 #JAR_TRIMMOMATIC=Trimmomatic.jar
-JAR_TRIMMOMATIC=/usr/local/Trimmomatic-0.38/trimmomatic-0.38.jar
+JAR_TRIMMOMATIC=/usr/local/bin/Trimmomatic-0.38/trimmomatic-0.38.jar
 TOOL_STAR=STAR
 TOOL_RSEM_PREP_REF=rsem-prepare-reference
 TOOL_RSEM_CALC_EXPR=rsem-calculate-expression

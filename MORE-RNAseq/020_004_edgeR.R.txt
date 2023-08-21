@@ -1,10 +1,11 @@
 ## R scirpt
 ## 020_004_edgeR.R.txt
+## v.1.0.1
 
 library(edgeR)
-library(genefilter)
-library(org.Mm.eg.db)
-#library(org.hg.eg.db)
+# "genefilter" is no need in this scripts
+#library(org.Mm.eg.db)
+#library(org.Hs.eg.db)
 
 DATASET <- "TR-0001"
 
