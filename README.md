@@ -22,15 +22,24 @@ $ ls MORE-RNAseq
 
 - **`Sample_Annot.txt`** : tab-delimited plain text file for your sample annotation
 ```
-dd
+Data	Sample	Dataset	Feature1
+Sample_001	CB6_A	TR-0001	Control
+Sample_002	CB6_B	TR-0001	Control
+Sample_003	CB6_C	TR-0001	Control
+Sample_006	CB6_D	TR-0001	Treat
+Sample_007	CB6_E	TR-0001	Treat
+Sample_008	CB6_F	TR-0001	Treat
 ```
 - **`00000setup.zsh`** : including the variables used in the pipeline 
 ```sh
 GENOME=GRCh38
 SPECIES=home_sapiens
-CAP_SPECIES=Home_sapiens
 ENSRELEASE=102
-#  (if mouse, use GRCm38/mus_musculus/Mus_musculus/102)
+#  (if mouse, use GRCm38/mus_musculus/102)
+READ_LENGTH=150
+THREAD=4
+...
+...
 ```
 
 (3) Prepare your **RNA-seq data (fastq)** and **reference data (fastq/gtf)** in the `Rawdata` and `Reference/Original` directory, respectively.
@@ -76,28 +85,37 @@ $ ls Results
 ## Outline of workflow
 
 ##### 1. **Pre-preparation**: `Exec_MORE-RNAseq_01.zsh`
-- 000.zsh: Initial setup
-- 001.zsh: Quality check of raw fastq data by FastQC
-- 002.zsh: Quality check of raw fastq data by fastq-stats
-- 003.zsh: Summarize the QC data
-- trimming adapter sequences and removing low-quality bases
-- Quality check after trimming
+- 000: Initial setup
+- 001: Quality check of raw fastq data by FastQC
+- 002: Quality check of raw fastq data by fastq-stats
+- 003: Summarize the QC of raw data
+- 004: Care of G-stretch sequences as library artifacts by Cutadapt
+- 005: trimming adapter sequences and removing low-quality bases by Trimmoamtic
+- 006: Quality check after trimmed by FastQC
+- 007: Quality check after trimmed by fastq-stats
+- 008: Summarize the QC of trimmed data
 
 ##### 2. **Indexing the reference genome**: `Exec_MORE-RNAseq_02.zsh`
 - 009.zsh: Prepare the references with GTF data of **[MORE reference](https://github.com/molbrain/MORE-reference)**
 
-##### 3. **Mapping and counting**: `Exec_MORE-RNAseq_03.zsh` (010.zsh to 019.zsh)
-- 010.zsh: Mapping with prepared reference by STAR
-- Calculate the expression of L1 transposons and genes
-- Create the read-count/TPM data matrix
-- Option: you can get the stats date of each bam file from STAR/RSEM or STAR output logs
+##### 3. **Mapping and counting**: `Exec_MORE-RNAseq_03.zsh`
+- 010: Mapping with prepared reference by STAR
+- 011: Stats check of bam files from STAR by samtools
+- 012: Summarize the stats data of bam files from STAR and the log outputs
+- 013: Calculate the expression of L1 transposons and genes by RSEM
+- 014: Stats check of bam files from RSEM by samtools
+- 015: Summarize the stats data of bam files from RSEM
+- 016: Create the count data matrix by RSEM
+- 017: Create the TPM and FPKM data matrix
+- 018: Create the matrix files of count data via STAR
+- 019: Format the matrix files as R-readable files.
 
-##### 4. **Detection of Differentially Expressed L1s and Visualization:** `Exec_MORE-RNAseq_03.zsh`
-- 020_001.R: Data loading from `019.zsh` data
-- 020_002.R: PCA plot of samples
-- 020_003.R: Box plot of the total L1 expression
-- 020_004.R: Volcano plot of the individual L1 expression
-- 020_005.R: Box plot of the intergenic and intragenic L1 expression
+##### 4. **Detection of Differentially Expressed L1s and Visualization:** `Exec_MORE-RNAseq_04.zsh`
+- 020_001: Data loading from `019.zsh` data
+- 020_002: PCA plot of samples
+- 020_003: Box plot of the total L1 expression
+- 020_004: Volcano plot of the individual L1 expression
+- 020_005: Box plot of the intergenic and intragenic L1 expression
 
 
 ## Require tools
