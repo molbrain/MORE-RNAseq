@@ -1,5 +1,7 @@
 #!/bin/zsh
 
+# v1.0.1
+
 echo "## $0 START : "
 date
 
