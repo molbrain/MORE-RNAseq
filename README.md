@@ -10,12 +10,12 @@ This is the MORE-RNAseq pipeline, a series of scripts analyzing RNA sequencing o
 (1) Download the **MORE-RNAseq** scripts from https://github.com/molbrain/MORE-RNAseq/releases and decompress in your working direcory.
 
 ```sh
-## in this case, yourDir is as your working directory
-$ mkdir yourDir
-$ cd yourDir
+## In this case, yourDir (renamed decompressed directory) is as your working directory
 $ curl https://github.com/molbrain/MORE-RNAseq/archive/refs/tags/v1.0.1.tar.gz
 $ tar zxvf v1.0.1.tar.gz
-$ ls MORE-RNAseq
+$ mv v1.0.1 yourDir
+$ cd yourDir
+$ ls .
 ```
 
 (2) Confirm and modify the information described in **`Sample_Annot.txt`** and **`00000setup.zsh`** of **`MORE-RNAseq`** directory.
@@ -59,7 +59,7 @@ $ wget \
 ## in yourDir as your working directory
 $ docker build -t yourtest:MORE-RNAseq MORE-RNAseq/docker/
 $ docker run -dit --name more-rnaseq yourtest:MORE-RNAseq
-$ docker cp ../ more-rnaseq:/root/test
+$ docker cp ../yourDir more-rnaseq:/root/test
 $ docker exec -it more-rnaseq /bin/bash
 ```
 
@@ -77,7 +77,7 @@ $ exit
 (5) Get the results from Docker container
 ```sh
 ## in yourDir as your working directory
-$ docker cp more-rnaseq:/root/testdata/Results/ Results
+$ docker cp more-rnaseq:/root/testdata/Results/ ./Results
 $ ls Results
 ```
 
