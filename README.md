@@ -1,31 +1,71 @@
-# MORE-RNAseq v1.0.1
+# MORE-RNAseq pipeline
 
 ## Summary
 
 This is the MORE-RNAseq pipeline, a series of scripts analyzing RNA sequencing of genes and L1 transposons.
-(Du J, Nakachi Y, Watanabe R, Yanagida Y, Bundo M and Iwamoto K. 2023. In preparation)
+(Nakachi Y, Du J, Watanabe R, Yanagida Y, Bundo M and Iwamoto K. 2025. In preparation)
 
 ## Quick usage
+
+Most simple way to use is as follows:
+
+```bash
+## before use, please install the STAR and RSEM
+
+wget https://ftp.ensembl.org/pub/release-102/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
+wget https://ftp.ensembl.org/pub/release-102/gtf/homo_sapiens/Homo_sapiens.GRCh38.102.gtf.gz
+
+zcat Homo_sapiens.GRCh38.102.gtf.gz L1fli_Utr5toUtr3.GRCh38.gtf.gz > reference.gtf
+
+rsem-prepare-reference
+    --star --star-path STAR \
+    --gtf reference.gtf \
+    --star-sjdboverhang 149 \
+    Homo_sapiens.GRCh38.dna.primary_assembly.fa \
+    ref
+
+## Mapping and count (e.g. your data is in ./yourDir directory)
+
+STAR --runMode alignReads
+    --runMode alignReads \
+    --genomeDir ref \
+    --readFilesCommand gunzip -c \
+    --quantMode TranscriptomeSAM \
+    --readFilesIn yourDir/data_R1.fastq.gz yourDir/data_R2.fastq.gz\
+    --outSAMtype BAM SortedByCoordinate \
+    --outSAMprimaryFlag AllBestScore \
+    --outSAMmultNmax -1 \
+    --outFilterMultimapNmax 100000
+
+rsem-calculate-expression \
+		--alignments \
+		--paired-end \
+		--append-names \
+		yourDir/Aligned.sortedByCoord.out.bam \
+		./ref \
+		yourDir/
+
+```
+
+
+## Usage of the example pipeline
 
 (1) Download the **MORE-RNAseq** scripts from https://github.com/molbrain/MORE-RNAseq/releases and decompress.
 ```sh
 ## In this case, yourDir (decompressed and renamed directory) is as your working directory
 $ curl -OL https://github.com/molbrain/MORE-RNAseq/archive/refs/tags/v1.0.1.tar.gz
-$ tar zxvf v1.0.1.tar.gz
-$ mv MORE-RNAseq-1.0.1 yourDir
+$ tar zxvf v1.1.tar.gz
+$ mv MORE-RNAseq-1.1 yourDir
 $ cd yourDir
 $ ls .
 
 ## Of course the way with web browser downloads and put each file via GUI (with mouse drag-and-drop) manually are OK.
 ```
 
-
-
-
 (2) Confirm and modify the information described in **`Sample_Annot.txt`** and **`00000setup.zsh`** of **`MORE-RNAseq`** directory.
 
 - **`Sample_Annot.txt`** is a tab-delimited plain text file for your sample annotation. An example is below. `Feature1` column is used in R script of edgeR (020).
-```
+```plain text
 Data	Sample	Dataset	Feature1
 Sample_001	CB6_A	TR-0001	Control
 Sample_002	CB6_B	TR-0001	Control
@@ -36,7 +76,7 @@ Sample_008	CB6_F	TR-0001	Treat
 ```
 
 - **`00000setup.zsh`** is the setting file including the variables used in the pipeline. You should confirm the contents, like the below variables.
-```sh
+```bash
 GENOME=GRCh38
 SPECIES=home_sapiens
 ENSRELEASE=102
@@ -134,10 +174,15 @@ $ ls Results
 
 ## Required tools
 
+For typical usage, these environments and tools are required.
+
 - [zsh](https://www.zsh.org)
 - [Perl](https://www.perl.org): for RSEM and some pipeline scripts
 - [STAR](https://github.com/alexdobin/STAR/)
 - [RSEM](http://deweylab.github.io/RSEM/)
+
+Additionally, these tools are also required for the example pipeline.
+
 - [Java](https://www.java.com)
 - [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
 - [ea-utils](http://expressionanalysis.github.io/ea-utils/): for fastq-stats
@@ -155,7 +200,7 @@ You can use the same tools via the Dockerfile. Please see the below.
 - Perl (v5.16.3)
 - R (v3.5.1)
 
-You can use the test environment via the Dockerfile. Please see the below.
+You can use the example pipeline via the Dockerfile. Please see the below.
 
 ## Details
 
@@ -513,3 +558,7 @@ And please prepare the preferred **`Sample_Annot.txt`**.
 
 - This file is in TSV (tab-delimiter text) format and you can edit `Sample_Annot_template.txt` by using Excel and so on.
 
+
+### Note 9. TEtranscirpts comparison
+
+The comparison between the MORE-RNAseq results and [TEtranscripts](https://github.com/mhammell-laboratory/TEtranscripts) is available.

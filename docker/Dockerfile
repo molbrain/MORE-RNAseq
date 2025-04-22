@@ -1,14 +1,23 @@
 ################################################################################
-### Docerfile of tools for MORE-RNAseq v1.0.1b.230819
+### Docerfile of required tools for MORE-RNAseq v1.1a.250417
+### Yutaka Nakachi <nakachiy [at] gmail [dot] com>
 ################################################################################
 
+
 ### Base Image
+
 FROM centos:centos7.9.2009
 
-MAINTAINER Yutaka Nakachi <nakachiy@gmail.com>
+
+### patch to yum settings for the CentOS7 vault repo URL
+
+RUN sed -i 's/^mirrorlist=http/#mirrorlist=http/g' /etc/yum.repos.d/CentOS-Base.repo
+RUN sed -i 's/^#.*baseurl=http/baseurl=http/g' /etc/yum.repos.d/CentOS-Base.repo
+RUN sed -i 's/mirror.centos.org/vault.centos.org/g' /etc/yum.repos.d/CentOS-Base.repo
 
 
 ### Update and initial install of tools
+
 RUN yum -y update
 RUN yum -y install bash
 RUN yum -y install zsh
@@ -16,6 +25,11 @@ RUN yum -y install wget
 RUN yum -y install unzip
 RUN yum -y groupinstall "Development Tools"
 RUN yum -y install epel-release
+
+
+### Install editor other than vi (vim)
+
+RUN yum -y install nano
 
 
 ### Install Java
@@ -34,13 +48,11 @@ RUN yum -y install perl
 RUN yum -y install perl-Env
 
 
-
 ################################################################################
 
 ### Pre-process
 
 RUN mkdir /root/src
-
 
 
 ################################################################################
@@ -55,6 +67,7 @@ RUN cp -rp /root/src/FastQC /usr/local/bin/FastQC-0.11.8 && \
 #RUN echo "export PATH=/usr/local/bin/FastQC-0.11.8:\$PATH" >> /root/.bashrc
 ENV PATH /usr/local/bin/FastQC-0.11.8:$PATH
 
+
 ### Install cutadapt
 
 RUN yum -y install python3-devel
@@ -62,7 +75,7 @@ RUN cd /root
 RUN python3 -m pip install cutadapt==1.18
 
 
-# Install Trimmomatic
+### Install Trimmomatic
 
 RUN cd /root/src && \
     wget http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.38.zip && \
@@ -82,7 +95,8 @@ ENV PATH /usr/local/bin/STAR-2.6.0c:$PATH
 
 
 ### Install samtools
-RUN yum -y install samtools
+
+#RUN yum -y install samtools
 
 RUN yum -y install zlib
 RUN yum -y install zlib-devel
@@ -110,7 +124,8 @@ RUN cd /root/src/samtools-1.11/ && make
 RUN mkdir /usr/local/bin/samtools-1.11
 RUN cd /root/src/samtools-1.11/ && make install DESTDIR=/usr/local/bin prefix=/samtools-1.11
 #RUN echo "export PATH=/usr/local/bin/samtools-1.11/bin:\$PATH" >> /root/.bashrc
-ENV PATH /usr/local/bin/samtools-1.9/bin:$PATH
+ENV PATH /usr/local/bin/samtools-1.11/bin:$PATH
+
 
 ### Install RSEM
 
@@ -132,6 +147,7 @@ RUN cd /root/src && \
 RUN echo "export PATH=/usr/local/bin/RSEM-1.3.3/bin:\$PATH" >> /root/.bashrc
 ENV PATH /usr/local/bin/RSEM-1.3.3/bin:$PATH
 
+
 ### Install fastq-stats
 
 RUN cd /root/src && \
@@ -145,8 +161,10 @@ RUN cp /root/src/ea-utils-master/clipper/fastq-stats /usr/local/bin/ea-utils-1.0
     echo "export PATH=/usr/local/bin/ea-utils-1.01:\$PATH" >> /root/.bashrc
 ENV PATH /usr/local/bin/ea-utils-1.01:$PATH
 
+
 ### Install R
 
+#RUN yum -y install gcc-c++
 RUN yum -y install readline 
 RUN yum -y install readline-devel 
 RUN yum -y install xorg-x11-server-devel
@@ -174,14 +192,14 @@ RUN cd /root/src/R-3.5.1 && make install
 ENV PATH /usr/local/bin/R-3.5.1/bin:$PATH
 
 RUN Rscript -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/locfit/locfit_1.5-9.1.tar.gz", repos=NULL, type="source");'
-RUN Rscript -e 'source("https://bioconductor.org/biocLite.R")'
+
+### modified source URL for Rcpp, for compatibility with R-3.5.1 
+RUN Rscript -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/Rcpp/Rcpp_1.0.12.tar.gz", repos=NULL, type="source");'
+
+### modified source URL for biocLite.R, the previous installer-script of BioC 
+RUN Rscript -e 'source("https://raw.githubusercontent.com/Bioconductor/LegacyInstall/refs/heads/devel/biocLite.R")'
 RUN Rscript -e 'BiocInstaller::biocLite(c("edgeR"));'
-
-#RUN Rscript -e 'BiocInstaller::biocLite(c("org.Hs.eg.db"));'
-#RUN Rscript -e 'BiocInstaller::biocLite(c("org.Mm.eg.db"));'
-#RUN Rscript -e 'BiocInstaller::biocLite(c("GO.db"));'
-#RUN Rscript -e 'BiocInstaller::biocLite(c("GOstats"));'
-
+#https://bioconductor.org/packages/3.7/bioc/src/contrib/edgeR_3.22.5.tar.gz
 
 ################################################################################
 
@@ -190,7 +208,10 @@ RUN Rscript -e 'BiocInstaller::biocLite(c("edgeR"));'
 RUN yum clean all
 RUN rm -fr /root/src
 
-### If you prepare your data directory (e.g. testdata, as below) using Dockerfile, please use COPY like below.
-#COPY testdata/ /root/MOREtest/
+### If you prepare your data directory (e.g., ./testdata, as below) in the same directory as Dockerfile, please use COPY like below.
+#COPY testdata/ /root/testdata/
 
 WORKDIR /root
+
+
+### End of file
