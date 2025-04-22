@@ -1,5 +1,5 @@
 ################################################################################
-### Docerfile of required tools for MORE-RNAseq v1.1a.250417
+### Docerfile of required tools for MORE-RNAseq v1.1.0 (250417)
 ### Yutaka Nakachi <nakachiy [at] gmail [dot] com>
 ################################################################################
 
