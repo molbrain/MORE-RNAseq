@@ -2,8 +2,16 @@
 
 ## Summary
 
-This is the MORE-RNAseq pipeline, a series of scripts analyzing RNA sequencing of genes and L1 transposons.
-(Nakachi Y, Du J, Watanabe R, Yanagida Y, Bundo M and Iwamoto K. 2025. In preparation)
+This is the MORE-RNAseq pipeline for qualifying retrotransposition-capable LINE-1 (L1) expression based on bulk RNA-sequencing data. The pipeline can be re-analyzed using FASTQ data that you already have.
+
+
+## Citation
+
+Nakachi Y, Du J, Watanabe R, Yanagida Y, Bundo M and Iwamoto K. 
+MORE-RNAseq: A pipeline for qualifying retrotransposition-capable LINE1 expression based on RNA-seq data.
+Front Bioinform, 2025. In press.
+DOI: (not yet)
+
 
 ## Quick usage
 
